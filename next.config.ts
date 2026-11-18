@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
   // Packages with Cloudflare Workers (workerd) specific code
   // https://opennext.js.org/cloudflare/howtos/workerd
   serverExternalPackages: ['jose', 'pg-cloudflare'],
+  redirects: async () => [
+    {
+      // www is routed to the Worker (see wrangler.jsonc) only to be sent to the apex
+      source: '/:path*',
+      has: [{ type: 'host', value: 'www.99stud.com' }],
+      destination: 'https://99stud.com/:path*',
+      permanent: true,
+    },
+  ],
   headers: async () => [
     {
       // WebGL assets and decoders are not content-hashed: cache for a day, then serve the cached
