@@ -88,3 +88,14 @@ The site runs on Cloudflare Workers through OpenNext. Payload CMS lives in the s
 - `pnpm dev` uses a local D1 database and R2 bucket under `.wrangler/`. Run `pnpm payload migrate` once to create the tables. `PAYLOAD_SECRET` must be set in `.env`.
 - After changing a collection, run `pnpm payload migrate:create <name>` and `pnpm generate:types`, and commit the results.
 - `pnpm run deploy` applies pending migrations to the remote D1 database, then builds and deploys. The build itself reads the remote database, so it needs `wrangler login`. Use `pnpm run deploy`, not `pnpm deploy`, which is a pnpm built-in.
+
+### Preview deployments
+
+Cloudflare Workers Builds builds every push. On `main` it deploys production; on any other branch it runs `pnpm run build` then `npx wrangler preview`, which publishes a [Worker Preview](https://developers.cloudflare.com/workers/previews/) and posts its URL on the pull request.
+
+- Previews never use production content. They only get the bindings of the `previews` block in `wrangler.jsonc`: the D1 database `99front-preview` and the R2 bucket `99front-media-preview`, shared by all previews. `wrangler.preview.jsonc` exposes the same two resources to the tools that run in Node; keep both files in sync.
+- `pnpm run build` is the OpenNext build (it produces `.open-next/worker.js`). When `WORKERS_CI_BRANCH` is set to anything but `main`, it first runs `pnpm run preview:database`, which applies the pending migrations of `src/migrations/` to the preview database, and Payload resolves its build-time bindings from `wrangler.preview.jsonc` instead of the production database. A preview build never opens the production database or bucket, and never runs a migration against them.
+- A pull request that adds a migration therefore migrates the shared preview database as soon as it is pushed. Other previews keep running their own code against it, so a destructive migration (dropped or renamed column) can break them until they are rebased. For such a change, create a dedicated database (`wrangler d1 create <name> --location weur`) and point both `previews.d1_databases` in `wrangler.jsonc` and `wrangler.preview.jsonc` at it on that branch only.
+- The preview database starts empty: open `/admin` on the preview URL to create its first user. To run the migrations by hand, use `pnpm run preview:database` (needs `wrangler login`).
+- Previews have their own `PAYLOAD_SECRET`, set once with `pnpm exec wrangler preview base-config secret put PAYLOAD_SECRET`. New previews receive it when they are created.
+- `WORKER_SELF_REFERENCE` is not bound in previews: a service binding from a preview would call the production Worker.
