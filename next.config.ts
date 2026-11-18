@@ -1,8 +1,24 @@
+import { withPayload } from '@payloadcms/next/withPayload';
+
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+  // Each build worker loads the Payload config, which starts a wrangler proxy on the shared
+  // `.wrangler/state` SQLite files; several at once fail with SQLITE_BUSY.
+  experimental: { cpus: 1 },
+  // Packages with Cloudflare Workers (workerd) specific code
+  // https://opennext.js.org/cloudflare/howtos/workerd
+  serverExternalPackages: ['jose', 'pg-cloudflare'],
+  redirects: async () => [
+    {
+      // www is routed to the Worker (see wrangler.jsonc) only to be sent to the apex
+      source: '/:path*',
+      has: [{ type: 'host', value: 'www.99stud.com' }],
+      destination: 'https://99stud.com/:path*',
+      permanent: true,
+    },
+  ],
   headers: async () => [
     {
       // WebGL assets and decoders are not content-hashed: cache for a day, then serve the cached
@@ -23,4 +39,4 @@ const nextConfig: NextConfig = {
   ],
 };
 
-export default nextConfig;
+export default withPayload(nextConfig, { devBundleServerPackages: false });

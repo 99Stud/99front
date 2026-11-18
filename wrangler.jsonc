@@ -1,0 +1,46 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "99front",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "routes": [
+    { "pattern": "99stud.com", "custom_domain": true },
+    // Attached only so next.config.ts can redirect it to the apex
+    { "pattern": "www.99stud.com", "custom_domain": true },
+  ],
+  // Keep the workers.dev URL and per-version preview URLs once a custom domain is attached
+  "workers_dev": true,
+  "preview_urls": true,
+  // Workers Logs: keep request and console logs (7 days) so failures can be read after the fact
+  "observability": {
+    "enabled": true,
+    "logs": { "invocation_logs": true, "head_sampling_rate": 1 },
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "d1_databases": [
+    {
+      "binding": "D1",
+      "database_id": "98b7d2e0-0f73-454d-8a11-9cd681ce72c2",
+      "database_name": "99front",
+      // Lets `payload migrate` and `next build` reach the real database when NODE_ENV=production
+      "remote": true,
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "99front-media",
+    },
+  ],
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      // Must match "name" above
+      "service": "99front",
+    },
+  ],
+}

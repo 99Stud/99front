@@ -1,0 +1,9 @@
+/_next/static/*
+  Cache-Control: public,max-age=31536000,immutable
+
+# WebGL assets and decoders are not content-hashed. Static files are served before the Worker
+# runs, so the matching rule in next.config.ts never reaches them on Cloudflare.
+/assets/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+/libs/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000

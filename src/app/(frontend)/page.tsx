@@ -3,12 +3,17 @@ import Link from 'next/link';
 import { FC } from 'react';
 import { preload } from 'react-dom';
 
-import { HOME_SOCIAL_LINKS } from '@lib/pages/Home/constants';
+import { getSocialLinks } from '@lib/pages/Home/getSocialLinks';
 
 import { criticalAssets } from '@99Stud/webgl/utils/manifest/preloadManifest';
 import { HomeClient } from '@components/pages/Home/HomeClient';
 
-const Home: FC = () => {
+// Read the links on each request so edits made in the CMS show up immediately
+export const dynamic = 'force-dynamic';
+
+const Home: FC = async () => {
+  const socialLinks = await getSocialLinks();
+
   // Matches the loaders' fetch mode (cors, same-origin credentials) so the preloaded response is reused
   for (const href of criticalAssets) {
     preload(href, { as: 'fetch', crossOrigin: 'anonymous' });
@@ -31,12 +36,12 @@ const Home: FC = () => {
           </Link>
         </nav>
         <nav className={clsx('fixed top-4 right-4', 'flex flex-col gap-3', 'text-right font-mono')}>
-          {HOME_SOCIAL_LINKS.map((link) => (
+          {socialLinks.map((link) => (
             <Link
-              aria-label={link.ariaLabel}
+              aria-label={`99stud on ${link.label}`}
               className={clsx('font-medium text-gray-400 uppercase underline select-none')}
               href={link.href}
-              key={link.href}
+              key={link.id ?? link.href}
               rel="noopener noreferrer"
               target="_blank"
             >

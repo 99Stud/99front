@@ -80,3 +80,11 @@ $ pnpm build
 # Production mode
 $ pnpm start
 ```
+
+## CMS (Payload on Cloudflare)
+
+The site runs on Cloudflare Workers through OpenNext. Payload CMS lives in the same app: the admin is at `/admin`, content is stored in D1 and uploads in R2 (bindings in `wrangler.jsonc`).
+
+- `pnpm dev` uses a local D1 database and R2 bucket under `.wrangler/`. Run `pnpm payload migrate` once to create the tables. `PAYLOAD_SECRET` must be set in `.env`.
+- After changing a collection, run `pnpm payload migrate:create <name>` and `pnpm generate:types`, and commit the results.
+- `pnpm run deploy` applies pending migrations to the remote D1 database, then builds and deploys. The build itself reads the remote database, so it needs `wrangler login`. Use `pnpm run deploy`, not `pnpm deploy`, which is a pnpm built-in.
