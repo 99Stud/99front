@@ -57,7 +57,8 @@ const RootLayout: FC<PropsWithChildren> = ({ children }) => {
       <link href="/icon?<generated>" rel="icon" sizes="<generated>" type="image/<generated>" />
       <body className={clsx(geistSans.variable, geistMono.variable, 'font-sans antialiased')}>
         {children}
-        <Analytics />
+        {/* Vercel Analytics only resolves on Vercel; drop it once Cloudflare serves production */}
+        {process.env.VERCEL && <Analytics />}
       </body>
     </html>
   );
