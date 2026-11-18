@@ -11,8 +11,8 @@ const FRAGMENT_SHADER = /* glsl */ `
   uniform bool toneMappingEnabled;
   uniform float exposure;
   uniform bool filmGrainEnabled;
-  uniform float intensity;
-  uniform bool grayscale;
+  uniform float grainIntensity;
+  uniform bool grainGrayscale;
   uniform float time;
 
   varying vec2 vUv;
@@ -59,9 +59,9 @@ const FRAGMENT_SHADER = /* glsl */ `
       float noise = rand(fract(vUv + time));
       vec3 grain = color + color * clamp(0.1 + noise, 0.0, 1.0);
 
-      color = mix(color, grain, intensity);
+      color = mix(color, grain, grainIntensity);
 
-      if (grayscale) {
+      if (grainGrayscale) {
         color = vec3(luminance(color));
       }
     }
@@ -73,16 +73,19 @@ const FRAGMENT_SHADER = /* glsl */ `
 `;
 
 class FinalPass extends Pass {
-  constructor({ exposure = 1, toneMapping = true, filmGrain = true, intensity = 0.5 } = {}) {
+  /**
+   * @param {{ toneMapping: { enabled: boolean, exposure: number }, filmGrain: { enabled: boolean, intensity: number, grayscale: boolean } }} settings
+   */
+  constructor({ toneMapping, filmGrain }) {
     super();
 
     this.uniforms = {
       tDiffuse: { value: null },
-      toneMappingEnabled: { value: toneMapping },
-      exposure: { value: exposure },
-      filmGrainEnabled: { value: filmGrain },
-      intensity: { value: intensity },
-      grayscale: { value: false },
+      toneMappingEnabled: { value: toneMapping.enabled },
+      exposure: { value: toneMapping.exposure },
+      filmGrainEnabled: { value: filmGrain.enabled },
+      grainIntensity: { value: filmGrain.intensity },
+      grainGrayscale: { value: filmGrain.grayscale },
       time: { value: 0 },
     };
 

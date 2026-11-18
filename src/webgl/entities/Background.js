@@ -29,6 +29,15 @@ const geometry = new SphereGeometry(10, 16, 32);
 // and upsampled, not once per screen pixel.
 const NOISE_HEIGHT = 256;
 
+const VERTEX_SHADER = `
+                varying vec2 vUv;
+
+                void main() {
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    vUv = uv;
+                }
+`;
+
 const NOISE_FRAGMENT_SHADER = `
                 precision highp float;
 
@@ -136,14 +145,7 @@ export default class Background extends Object3D {
     this.noiseQuad = new FullScreenQuad(
       new ShaderMaterial({
         uniforms: noiseUniforms,
-        vertexShader: `
-                varying vec2 vUv;
-
-                void main() {
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    vUv = uv;
-                }
-            `,
+        vertexShader: VERTEX_SHADER,
         fragmentShader: NOISE_FRAGMENT_SHADER,
       }),
     );
@@ -161,14 +163,7 @@ export default class Background extends Object3D {
         uBlurriness: { value: this.settings.blurriness },
         uBlueNoiseCoordOffset: { value: new Vector2(0.05, 0.05) },
       },
-      vertexShader: `
-                varying vec2 vUv;
-
-                void main() {
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    vUv = uv;
-                }
-            `,
+      vertexShader: VERTEX_SHADER,
       fragmentShader: `
                 precision highp float;
 
@@ -210,15 +205,13 @@ export default class Background extends Object3D {
                     vec3 col = coverTexture(tGrad, vec2(1920., 1080.), st, uResolution.xy).rgb;
                     
                     // Smoothed noise, precomputed at low resolution
-                    vec3 noises = texture2D(tNoise, st).rgb;
-                    float noise = noises.x;
-                    float noiseSecond = noises.y;
-                    float noiseThird = noises.z;
+                    // (one layer per channel, in gradient scale order)
+                    vec3 noise = texture2D(tNoise, st).rgb;
 
                     // Very gradual color mixing with micro-steps
-                    col = mix(col, uColorInner, noise * 0.1); // Very subtle
-                    col = mix(col, uColorOuter, noiseThird * 0.45); // Reduced
-                    col = mix(col, uColorMid, noiseSecond * 0.4); // Reduced
+                    col = mix(col, uColorInner, noise.x * 0.1); // Very subtle
+                    col = mix(col, uColorOuter, noise.z * 0.45); // Reduced
+                    col = mix(col, uColorMid, noise.y * 0.4); // Reduced
                     
                     // Blue noise dithering with very small magnitude to prevent banding
                     vec4 blueNoise = getNoise(tBlueNoise, st, uBlueNoiseCoordOffset);

@@ -177,10 +177,8 @@ class PostProcessing {
 
   setupFinalPass() {
     this.finalPass = new FinalPass({
-      exposure: PARAMS.toneMapping.exposure,
-      toneMapping: PARAMS.toneMapping.enabled,
-      filmGrain: PARAMS.filmGrain.enabled,
-      intensity: PARAMS.filmGrain.intensity,
+      toneMapping: PARAMS.toneMapping,
+      filmGrain: PARAMS.filmGrain,
     });
 
     if (!isWebGLDebug) return;
@@ -204,10 +202,10 @@ class PostProcessing {
     this.filmGrainFolder
       .addBinding(PARAMS.filmGrain, 'intensity', { min: 0, max: 10, step: 0.01 })
       .on('change', (ev) => {
-        uniforms.intensity.value = ev.value;
+        uniforms.grainIntensity.value = ev.value;
       });
     this.filmGrainFolder.addBinding(PARAMS.filmGrain, 'grayscale').on('change', (ev) => {
-      uniforms.grayscale.value = ev.value;
+      uniforms.grainGrayscale.value = ev.value;
     });
   }
 

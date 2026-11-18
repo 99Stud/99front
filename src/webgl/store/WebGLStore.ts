@@ -19,7 +19,6 @@ interface Viewport {
 }
 
 interface DeviceSettings {
-  tier: unknown;
   fxaa: boolean;
   isMobile: boolean;
 }
@@ -58,7 +57,6 @@ class WebGLStore extends EventDispatcher {
 
     this.#settings = {
       device: {
-        tier: null,
         fxaa: true,
         isMobile: false,
       },
@@ -92,10 +90,8 @@ class WebGLStore extends EventDispatcher {
     return this.#state.eventsEnabled;
   }
 
-  setDeviceSettings({ tier, isMobile }: { tier: unknown; isMobile: boolean }): void {
-    const { device } = this.#settings;
-    device.tier = tier;
-    device.isMobile = isMobile;
+  setDeviceSettings({ isMobile }: { isMobile: boolean }): void {
+    this.#settings.device.isMobile = isMobile;
   }
 
   setEvents(value: boolean = true): void {

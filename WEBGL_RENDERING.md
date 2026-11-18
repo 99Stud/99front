@@ -550,11 +550,19 @@ onResize() {
   const { width, height, dpr } = WebGLStore.viewport;
   const { uResolution } = this.mesh.material.uniforms;
   uResolution.value.set(width * dpr, height * dpr, dpr);
+
+  const aspect = width / height;
+  this.mesh.material.uniforms.uAspect.value = aspect;
+  this.noiseTarget.setSize(Math.ceil(NOISE_HEIGHT * aspect), NOISE_HEIGHT);
 }
 
 onTick({ time }) {
   const { uTime } = this.mesh.material.uniforms;
   uTime.value = time;
+
+  Renderer.setRenderTarget(this.noiseTarget);
+  this.noiseQuad.render(Renderer);
+  Renderer.setRenderTarget(null);
 }
 ```
 
@@ -698,14 +706,16 @@ onPointerUp = ({ _state, _e }) => {
 ## Resizing & Viewport Management
 
 - The React-side watcher updates both `WebGLStore` and `WebGLApp`, which in turn calls each subsystem’s `onResize`.
-- `WebGLStore.onResize` updates width/height/aspect plus breakpoint flags so responsive behaviors (coin scaling, layout decisions) can use accurate information.
+- `WebGLStore.onResize` updates width/height/aspect, the capped device pixel ratio, and breakpoint flags so responsive behaviors (coin scaling, layout decisions) can use accurate information.
 - Entities such as `Coin` and `Background`, along with `Camera`, `Renderer`, and `PostProcessing`, respond to `onResize` to update matrices, render target sizes, and resolution uniforms.
 
-```103:111:src/webgl/store/WebGLStore.ts
+```101:111:src/webgl/store/WebGLStore.ts
 onResize(width: number, height: number): void {
   this.#viewport.width = width;
   this.#viewport.height = height;
   this.#viewport.aspect = width / height;
+  // Changes when the window moves to a screen with another density
+  this.#viewport.dpr = clampDpr(window.devicePixelRatio);
 
   this.#viewport.breakpoints.xl = width >= 1280;
   this.#viewport.breakpoints.lg = width >= 1024;
@@ -723,12 +733,13 @@ onResize(): void {
 }
 ```
 
-```54:59:src/webgl/components/Renderer.js
+```55:61:src/webgl/components/Renderer.js
 onResize() {
   const { width, height, dpr } = WebGLStore.viewport;
 
+  // setPixelRatio resizes the drawing buffer too, so only call it when it changed
+  if (this.getPixelRatio() !== dpr) this.setPixelRatio(dpr);
   this.setSize(width, height);
-  this.setPixelRatio(dpr);
 }
 ```
 
@@ -834,7 +845,7 @@ setupPerfs(): void {
 }
 ```
 
-- `Renderer` exposes renderer memory stats via the debugger UI, loads `stats.js` on demand in debug mode, and allows pausing the global RAF loop. The canvas has no depth or stencil buffer (everything is drawn through the composer's targets) and uses a standard depth buffer.
+- `Renderer` exposes renderer memory stats via the debugger UI, loads `stats.js` on demand in debug mode, and allows pausing the global RAF loop. The canvas itself has no depth or stencil buffer: the scene is drawn into the composer's render target, which carries its own (standard, non-logarithmic) depth texture.
 
 ```7:62:src/webgl/components/Renderer.js
 class Renderer extends WebGLRenderer {
