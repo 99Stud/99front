@@ -1,4 +1,10 @@
 .webgl-wrapper {
+  // iOS 26 Safari does not draw fixed elements under the status bar or the toolbar: it fills
+  // those areas with a colour sampled from the top and bottom of this element's background.
+  // The canvas covers the gradient, so it only shows there and while the scene is loading.
+  // The two colours match the scene's top and bottom edges.
+  background: linear-gradient(to bottom, #202127, #0b0f12);
+
   & > canvas {
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
