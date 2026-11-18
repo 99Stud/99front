@@ -4,6 +4,11 @@
   "name": "99front",
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // www.99stud.com is not attached: it redirects to the apex
+  "routes": [{ "pattern": "99stud.com", "custom_domain": true }],
+  // Keep the workers.dev URL and per-version preview URLs once a custom domain is attached
+  "workers_dev": true,
+  "preview_urls": true,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",

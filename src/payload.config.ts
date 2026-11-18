@@ -11,6 +11,7 @@ import { buildConfig } from 'payload';
 import { Media } from './collections/Media';
 import { Posts } from './collections/Posts';
 import { Users } from './collections/Users';
+import { SocialLinks } from './globals/SocialLinks';
 
 import type { CloudflareContext } from '@opennextjs/cloudflare';
 import type { GetPlatformProxyOptions } from 'wrangler';
@@ -92,6 +93,7 @@ export default buildConfig({
     passwordHashIterations: 100000,
   },
   collections: [Posts, Media, Users],
+  globals: [SocialLinks],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
