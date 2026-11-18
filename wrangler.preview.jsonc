@@ -1,0 +1,22 @@
+{
+  // Not a deployable Worker. It exposes the resources of the `previews` block of wrangler.jsonc as
+  // top-level bindings, so that tools running in Node (`payload migrate`, `next build`) can reach
+  // them through wrangler's proxy. See `usePreviewBindings` in src/payload.config.ts.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "99front-preview-bindings",
+  "compatibility_date": "2026-11-01",
+  "d1_databases": [
+    {
+      "binding": "D1",
+      "database_id": "1766aaa7-2a8a-4a3e-9140-0f425e25bcff",
+      "database_name": "99front-preview",
+      "remote": true,
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "99front-media-preview",
+    },
+  ],
+}

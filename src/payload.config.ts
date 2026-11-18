@@ -40,6 +40,13 @@ const isCLI = process.argv.some((value) => {
 });
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Workers Builds runs the same build for every branch. Any branch but main is a preview build and
+// must never reach production data, so it resolves bindings from wrangler.preview.jsonc.
+// `PAYLOAD_BINDINGS=preview` forces the same thing by hand (see `preview:database`).
+const ciBranch = process.env.WORKERS_CI_BRANCH;
+const usePreviewBindings =
+  process.env.PAYLOAD_BINDINGS === 'preview' || (!!ciBranch && ciBranch !== 'main');
+
 /* eslint-disable no-console */
 const createLog =
   (level: string, fn: typeof console.log) => (objOrMsg: object | string, msg?: string) => {
@@ -65,11 +72,14 @@ const cloudflareLogger = {
 /* eslint-enable no-console */
 
 // In Node, bindings come from wrangler's proxy: local D1/R2 in dev, the remote ones for
-// production CLI runs such as `payload migrate`.
+// production CLI runs such as `payload migrate` (the preview database when `usePreviewBindings`).
 function getCloudflareContextFromWrangler(): Promise<CloudflareContext> {
   return import(/* webpackIgnore: true */ `${'__wrangler'.replaceAll('_', '')}`).then(
     ({ getPlatformProxy }) =>
       getPlatformProxy({
+        configPath: usePreviewBindings
+          ? path.resolve(dirname, '../wrangler.preview.jsonc')
+          : undefined,
         environment: process.env.CLOUDFLARE_ENV,
         remoteBindings: isProduction,
       } satisfies GetPlatformProxyOptions),

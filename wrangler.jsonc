@@ -43,4 +43,24 @@
       "service": "99front",
     },
   ],
+  // Worker Previews (`wrangler preview`, run by Workers Builds on every branch but main) do not
+  // inherit the bindings above: they only get these, which hold no production content.
+  // Keep the ids in sync with wrangler.preview.jsonc.
+  // WORKER_SELF_REFERENCE is left out on purpose: a service binding from a Preview calls the
+  // production Worker, and OpenNext only uses it for ISR revalidation queues, which are not set up.
+  "previews": {
+    "d1_databases": [
+      {
+        "binding": "D1",
+        "database_id": "1766aaa7-2a8a-4a3e-9140-0f425e25bcff",
+        "database_name": "99front-preview",
+      },
+    ],
+    "r2_buckets": [
+      {
+        "binding": "R2",
+        "bucket_name": "99front-media-preview",
+      },
+    ],
+  },
 }
