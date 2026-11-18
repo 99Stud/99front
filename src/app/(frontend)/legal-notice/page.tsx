@@ -32,7 +32,7 @@ const PrivacyPolicy: FC = () => {
         <div className={clsx('space-y-2')}>
           <h2 className={clsx('text-lg font-bold uppercase')}>Hosting</h2>
           <p className={clsx('text-sm text-gray-500')}>
-            Vercel Inc. 440 N Barranca Ave #4133 Covina, CA 91723
+            Cloudflare, Inc. 101 Townsend St, San Francisco, CA 94107, USA
           </p>
         </div>
       </main>
