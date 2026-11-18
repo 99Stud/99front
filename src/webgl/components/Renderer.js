@@ -1,4 +1,3 @@
-import Stats from 'stats-js';
 import { SRGBColorSpace, WebGLRenderer } from 'three';
 
 import GlobalRaf from '@99Stud/webgl/events/Raf';
@@ -10,19 +9,20 @@ class Renderer extends WebGLRenderer {
     super({
       powerPreference: 'high-performance',
       antialias: false,
-      depth: true,
-      preserveDrawingBuffer: true,
-      logarithmicDepthBuffer: true,
+      // The scene is drawn into the composer's own targets, so the canvas needs neither
+      depth: false,
+      stencil: false,
     });
 
     // PostFX
     this.outputColorSpace = SRGBColorSpace;
 
-    this.addStats();
     this.addDebug();
   }
 
-  addStats() {
+  async addStats() {
+    const { default: Stats } = await import('stats-js');
+
     this.stats = new Stats();
     this.stats.dom.style.position = 'relative';
     this.stats.dom.style.display = 'flex';
@@ -43,7 +43,8 @@ class Renderer extends WebGLRenderer {
     });
     rendererFolder.addBinding(this.info.memory, 'textures', { readonly: true });
     rendererFolder.addBinding(GlobalRaf, 'isPaused', { label: 'Pause Raf' });
-    rendererFolder.children[rendererFolder.children.length - 1].element.after(this.stats.dom);
+    const lastBinding = rendererFolder.children[rendererFolder.children.length - 1].element;
+    this.addStats().then(() => lastBinding.after(this.stats.dom));
     window.addEventListener('keyup', (e) => {
       if (e.key !== 'p') return;
       GlobalRaf.isPaused = !GlobalRaf.isPaused;
@@ -54,8 +55,9 @@ class Renderer extends WebGLRenderer {
   onResize() {
     const { width, height, dpr } = WebGLStore.viewport;
 
+    // setPixelRatio resizes the drawing buffer too, so only call it when it changed
+    if (this.getPixelRatio() !== dpr) this.setPixelRatio(dpr);
     this.setSize(width, height);
-    this.setPixelRatio(dpr);
   }
 }
 

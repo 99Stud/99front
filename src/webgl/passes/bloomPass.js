@@ -204,6 +204,7 @@ class BloomPass extends Pass {
   #passes_ = {};
   #targets_ = {};
   #settings_ = null;
+  #colourKey_ = null;
 
   constructor(options) {
     super();
@@ -241,8 +242,8 @@ class BloomPass extends Pass {
       stencilBuffer: false,
     };
 
-    // TODO: Make this better
-    for (let i = 0; i <= this.#settings_.setup.levels; i++) {
+    // Level 0 (full resolution) is the composer's own buffer, so it needs no target here
+    for (let i = 1; i <= this.#settings_.setup.levels; i++) {
       this.#createRenderTarget_('unity-downsample-' + i, 1.0 / 2 ** i, bufferParams);
       this.#createRenderTarget_('unity-upsample-' + i, 1.0 / 2 ** i, bufferParams);
     }
@@ -320,104 +321,63 @@ class BloomPass extends Pass {
   }
 
   render(renderer, writeBuffer, readBuffer) {
-    // this.threejs_.setRenderTarget(this.#targets_['diffuse'].buffer);
-    // this.threejs_.render(this.scene_, this.camera_);
-    // this.threejs_.setRenderTarget(null);
+    const { levels } = this.#settings_.setup;
+    const downsample = this.#passes_['unity-downsample'];
+    const upsample = this.#passes_['unity-upsample'];
+    const composite = this.#passes_['unity-composite'];
 
-    this.#passes_['copy-texture'].uniforms.tDiffuse.value = readBuffer.texture;
-    this.#passes_['copy-texture'].needsUpdate = true;
-    this.#renderPass_('copy-texture', renderer, writeBuffer);
-
-    // TODO: Extra copy is unnecessary
-    this.#passes_['copy-texture'].uniforms.tDiffuse.value = readBuffer.texture;
-    this.#passes_['copy-texture'].needsUpdate = true;
-    this.#renderPass_('copy-texture', renderer, this.#targets_['unity-downsample-0'].buffer);
-
-    // TODO: This is lazy
-    for (let i = 0; i < this.#settings_.setup.levels; i++) {
-      const srcName = 'unity-downsample-' + i;
-      const dstName = 'unity-downsample-' + (i + 1);
-      if (!(dstName in this.#targets_)) {
-        break;
-      }
-
-      const src = this.#targets_[srcName].buffer;
-      const dst = this.#targets_[dstName].buffer;
-
-      this.#passes_['unity-downsample'].uniforms.frameTexture.value = src.texture;
-      this.#passes_['unity-downsample'].uniforms.useKaris.value = i == 0;
-      this.#passes_['unity-downsample'].uniforms.radius.value = this.#settings_.render.downRadius;
-      this.#passes_['unity-downsample'].uniforms.resolution.value = new THREE.Vector2(
-        src.width,
-        src.height,
+    // Only the first (Karis) downsample reads the colour matrix
+    const { contrast, brightness, saturation } = this.#settings_.render;
+    const colourKey = `${contrast}|${brightness}|${saturation}`;
+    if (colourKey !== this.#colourKey_) {
+      this.#colourKey_ = colourKey;
+      downsample.uniforms.colourMatrix.value = this.#buildColourMatrix_(
+        contrast,
+        brightness,
+        saturation,
       );
+    }
 
-      if (i == 0) {
-        this.#passes_['unity-downsample'].uniforms.colourMatrix.value = this.#buildColourMatrix_(
-          this.#settings_.render.contrast,
-          this.#settings_.render.brightness,
-          this.#settings_.render.saturation,
-        );
-      } else {
-        this.#passes_['unity-downsample'].uniforms.colourMatrix.value = new THREE.Matrix4();
-      }
+    // Downsample, reading level 0 straight from the composer's buffer
 
-      this.#passes_['unity-downsample'].needsUpdate = true;
+    for (let i = 0; i < levels; i++) {
+      const src = i === 0 ? readBuffer : this.#targets_['unity-downsample-' + i].buffer;
+      const dst = this.#targets_['unity-downsample-' + (i + 1)].buffer;
+
+      downsample.uniforms.frameTexture.value = src.texture;
+      downsample.uniforms.useKaris.value = i === 0;
+      downsample.uniforms.radius.value = this.#settings_.render.downRadius;
+      downsample.uniforms.resolution.value.set(src.width, src.height);
+
       this.#renderPass_('unity-downsample', renderer, dst);
     }
 
-    // Upsample
-    // TODO: Stupid, be better
-    const finalDownsample = 'unity-downsample-' + this.#settings_.setup.levels;
-    const finalUpsample = 'unity-upsample-' + this.#settings_.setup.levels;
+    // Upsample, starting from the smallest level
     this.#passes_['copy-texture'].uniforms.tDiffuse.value =
-      this.#targets_[finalDownsample].buffer.texture;
-    this.#passes_['copy-texture'].needsUpdate = true;
-    this.#renderPass_('copy-texture', renderer, this.#targets_[finalUpsample].buffer);
+      this.#targets_['unity-downsample-' + levels].buffer.texture;
+    this.#renderPass_('copy-texture', renderer, this.#targets_['unity-upsample-' + levels].buffer);
 
-    for (let i = this.#settings_.setup.levels; i >= 0; i--) {
-      const srcName = 'unity-upsample-' + (i + 1);
-      const dstName = 'unity-upsample-' + i;
-      if (!(srcName in this.#targets_)) {
-        continue;
-      }
-
-      const src = this.#targets_[srcName].buffer;
+    // Stops at level 1: the composite samples it directly, so a full-resolution level is never read
+    for (let i = levels - 1; i >= 1; i--) {
+      const src = this.#targets_['unity-upsample-' + (i + 1)].buffer;
       const srcMip = this.#targets_['unity-downsample-' + (i + 1)].buffer;
-      const dst = this.#targets_[dstName].buffer;
+      const dst = this.#targets_['unity-upsample-' + i].buffer;
 
-      this.#passes_['unity-upsample'].uniforms.frameTexture.value = src.texture;
-      this.#passes_['unity-upsample'].uniforms.mipTexture.value = srcMip.texture;
-      this.#passes_['unity-upsample'].uniforms.radius.value = this.#settings_.render.upRadius;
-      this.#passes_['unity-upsample'].uniforms.resolution.value = new THREE.Vector2(
-        src.width,
-        src.height,
-      );
-      this.#passes_['unity-upsample'].needsUpdate = true;
+      upsample.uniforms.frameTexture.value = src.texture;
+      upsample.uniforms.mipTexture.value = srcMip.texture;
+      upsample.uniforms.radius.value = this.#settings_.render.upRadius;
+      upsample.uniforms.resolution.value.set(src.width, src.height);
 
       this.#renderPass_('unity-upsample', renderer, dst);
     }
 
-    // this.#passes_['copy-texture'].uniforms.tDiffuse.value = this.#targets_['unity-upsample-0'].buffer.texture;
-    // this.#passes_['copy-texture'].needsUpdate = true;
-    // this.#renderPass_('copy-texture', renderer, writeBuffer);
-    // this.needsSwap = true;
-
-    this.#passes_['unity-composite'].uniforms.frameTexture.value = readBuffer.texture;
-    this.#passes_['unity-composite'].uniforms.bloomTexture.value =
-      this.#targets_['unity-upsample-1'].buffer.texture;
-    this.#passes_['unity-composite'].uniforms.bloomStrength.value =
-      this.#settings_.composite.strength;
-    this.#passes_['unity-composite'].uniforms.bloomMix.value = this.#settings_.composite.mixFactor;
-    this.#passes_['unity-composite'].needsUpdate = true;
+    composite.uniforms.frameTexture.value = readBuffer.texture;
+    composite.uniforms.bloomTexture.value = this.#targets_['unity-upsample-1'].buffer.texture;
+    composite.uniforms.bloomStrength.value = this.#settings_.composite.strength;
+    composite.uniforms.bloomMix.value = this.#settings_.composite.mixFactor;
     this.#renderPass_('unity-composite', renderer, writeBuffer);
 
     this.needsSwap = true;
-
-    // this.#passes_['copy-texture'].uniforms.tDiffuse.value = this.#targets_['unity-upsample-1'].buffer.texture;
-    // this.#passes_['copy-texture'].needsUpdate = true;
-    // this.#renderPass_('copy-texture', renderer, writeBuffer);
-    // this.needsSwap = true;
   }
 
   setSize(width, height) {
@@ -432,7 +392,7 @@ class BloomPass extends Pass {
       if (!this.#passes_[k].uniforms.resolution) {
         continue;
       }
-      this.#passes_[k].uniforms.resolution.value = new THREE.Vector2(width, height);
+      this.#passes_[k].uniforms.resolution.value.set(width, height);
     }
   }
 

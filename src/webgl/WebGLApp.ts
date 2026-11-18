@@ -1,10 +1,10 @@
-import { ThreePerf } from 'three-perf';
-
 import Camera from '@99Stud/webgl/components/Camera';
 import PostProcessing from '@99Stud/webgl/components/PostProcessing';
 import Renderer from '@99Stud/webgl/components/Renderer';
 import Scene from '@99Stud/webgl/components/Scene';
 import Emitter from '@99Stud/webgl/events/Emitter';
+
+import type { ThreePerf } from 'three-perf';
 
 const isBrowser = typeof window !== 'undefined';
 const isWebGLDebug = process.env.NEXT_PUBLIC_WEBGL_DEBUG === 'true';
@@ -29,8 +29,9 @@ export default class WebGLApp {
     this.onResize();
   }
 
-  setupPerfs(): void {
+  async setupPerfs(): Promise<void> {
     if (!this.wrapper) return;
+    const { ThreePerf } = await import('three-perf');
     this.perf = new ThreePerf({
       anchorX: 'left',
       anchorY: 'top',

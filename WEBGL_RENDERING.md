@@ -147,48 +147,36 @@ onResize = (): void => {
 
 ### Post-processing chain
 
-- `PostProcessing` allocates an `EffectComposer` with an HDR-friendly, depth-enabled render target, then stitches the pass order: `RenderPass` → `SMAA` → `GTAO` → `MotionBlur` → `Bloom` → `BrightnessContrast` → `ACESFilmicToneMapping` → `FilmPass` → `GammaCorrection` → `Output`.
+- `PostProcessing` allocates an `EffectComposer` with an HDR-friendly, depth-enabled render target, then runs three passes: `RenderPass` → `BloomPass` → `FinalPass`. `FinalPass` does ACES filmic tone mapping, film grain and the sRGB conversion in a single full-screen draw.
+- SMAA, GTAO, motion blur and brightness/contrast are off by default. They live in `PostProcessingDebug.js`, which is only imported when `NEXT_PUBLIC_WEBGL_DEBUG=true`; it inserts them at their usual place in the chain (`RenderPass` → `SMAA` → `GTAO` → `MotionBlur` → `Bloom` → `BrightnessContrast` → `FinalPass`). Production builds neither download them nor allocate their render targets.
 
-```121:154:src/webgl/components/PostProcessing.js
+```80:94:src/webgl/components/PostProcessing.js
 this.composer = this.setupComposer();
 this.composer.enabled = true;
 
+// Clear settings ensure proper depth buffer setup
 this.renderPass = new RenderPass(Scene, Camera);
 this.renderPass.clear = true;
 this.renderPass.clearDepth = true;
 this.renderPass.clearColor = true;
 
-this.outputPass = new OutputPass();
-
-this.setupSMAA(w, h);
-this.setupGTAO();
 this.setupBloomPass();
-this.setupBrightnessContrast();
-this.setupToneMapping();
-this.setupGammaCorrection();
-this.setupFilmGrainPass();
-this.setupMotionBlurPass();
+this.setupFinalPass();
 
 this.composer.addPass(this.renderPass);
-this.composer.addPass(this.smaaPass);
-this.composer.addPass(this.gtaoPass);
-this.composer.addPass(this.motionBlurPass);
 this.composer.addPass(this.bloomPass);
-this.composer.addPass(this.brightnessContrastPass);
-this.composer.addPass(this.toneMappingPass);
-this.composer.addPass(this.filmGrainPass);
-this.composer.addPass(this.gammaCorrectionPass);
-this.composer.addPass(this.outputPass);
+this.composer.addPass(this.finalPass);
 ```
 
-```162:175:src/webgl/components/PostProcessing.js
+```109:124:src/webgl/components/PostProcessing.js
 setupComposer() {
   const { width: w, height: h } = WebGLStore.viewport;
   const params = {
     format: RGBAFormat,
     type: HalfFloatType,
-    minFilter: NearestFilter,
-    magFilter: NearestFilter,
+    // Linear, because the bloom downsamples straight from this buffer
+    minFilter: LinearFilter,
+    magFilter: LinearFilter,
   };
 
   const rt = new WebGLRenderTarget(w, h, params);
@@ -201,7 +189,7 @@ setupComposer() {
 
 - The render call runs the composer, then optionally draws a depth overlay (quarter-screen or full-screen) when debug flags demand it.
 
-```619:630:src/webgl/components/PostProcessing.js
+```442:453:src/webgl/components/PostProcessing.js
 render() {
   this.composer.render();
 
@@ -216,83 +204,64 @@ render() {
 }
 ```
 
-- Custom passes add extra logic: `BloomPass` performs multi-level downsampling and tent-filter upsampling before compositing, while `MotionBlurPass` keeps ping-pong render targets so it can blend the previous frame into the current one.
+- Custom passes add extra logic: `BloomPass` performs multi-level downsampling and tent-filter upsampling before compositing. It reads its first level straight from the composer's buffer and stops upsampling at half resolution, which is what the composite samples, so it never draws a full-resolution intermediate. `MotionBlurPass` (debug only) keeps ping-pong render targets so it can blend the previous frame into the current one.
 
-```322:414:src/webgl/passes/bloomPass.js
+```323:381:src/webgl/passes/bloomPass.js
 render(renderer, writeBuffer, readBuffer) {
-  this.#passes_['copy-texture'].uniforms.tDiffuse.value = readBuffer.texture;
-  this.#passes_['copy-texture'].needsUpdate = true;
-  this.#renderPass_('copy-texture', renderer, this.#targets_['unity-downsample-0'].buffer);
+  const { levels } = this.#settings_.setup;
+  const downsample = this.#passes_['unity-downsample'];
+  const upsample = this.#passes_['unity-upsample'];
+  const composite = this.#passes_['unity-composite'];
 
-  for (let i = 0; i < this.#settings_.setup.levels; i++) {
-    const srcName = 'unity-downsample-' + i;
-    const dstName = 'unity-downsample-' + (i + 1);
-    if (!(dstName in this.#targets_)) {
-      break;
-    }
-
-    const src = this.#targets_[srcName].buffer;
-    const dst = this.#targets_[dstName].buffer;
-
-    this.#passes_['unity-downsample'].uniforms.frameTexture.value = src.texture;
-    this.#passes_['unity-downsample'].uniforms.useKaris.value = i == 0;
-    this.#passes_['unity-downsample'].uniforms.radius.value = this.#settings_.render.downRadius;
-    this.#passes_['unity-downsample'].uniforms.resolution.value = new THREE.Vector2(
-      src.width,
-      src.height,
+  // Only the first (Karis) downsample reads the colour matrix
+  const { contrast, brightness, saturation } = this.#settings_.render;
+  const colourKey = `${contrast}|${brightness}|${saturation}`;
+  if (colourKey !== this.#colourKey_) {
+    this.#colourKey_ = colourKey;
+    downsample.uniforms.colourMatrix.value = this.#buildColourMatrix_(
+      contrast,
+      brightness,
+      saturation,
     );
+  }
 
-    if (i == 0) {
-      this.#passes_['unity-downsample'].uniforms.colourMatrix.value = this.#buildColourMatrix_(
-        this.#settings_.render.contrast,
-        this.#settings_.render.brightness,
-        this.#settings_.render.saturation,
-      );
-    } else {
-      this.#passes_['unity-downsample'].uniforms.colourMatrix.value = new THREE.Matrix4();
-    }
+  // Downsample, reading level 0 straight from the composer's buffer
 
-    this.#passes_['unity-downsample'].needsUpdate = true;
+  for (let i = 0; i < levels; i++) {
+    const src = i === 0 ? readBuffer : this.#targets_['unity-downsample-' + i].buffer;
+    const dst = this.#targets_['unity-downsample-' + (i + 1)].buffer;
+
+    downsample.uniforms.frameTexture.value = src.texture;
+    downsample.uniforms.useKaris.value = i === 0;
+    downsample.uniforms.radius.value = this.#settings_.render.downRadius;
+    downsample.uniforms.resolution.value.set(src.width, src.height);
+
     this.#renderPass_('unity-downsample', renderer, dst);
   }
 
-  const finalDownsample = 'unity-downsample-' + this.#settings_.setup.levels;
-  const finalUpsample = 'unity-upsample-' + this.#settings_.setup.levels;
+  // Upsample, starting from the smallest level
   this.#passes_['copy-texture'].uniforms.tDiffuse.value =
-    this.#targets_[finalDownsample].buffer.texture;
-  this.#passes_['copy-texture'].needsUpdate = true;
-  this.#renderPass_('copy-texture', renderer, this.#targets_[finalUpsample].buffer);
+    this.#targets_['unity-downsample-' + levels].buffer.texture;
+  this.#renderPass_('copy-texture', renderer, this.#targets_['unity-upsample-' + levels].buffer);
 
-  for (let i = this.#settings_.setup.levels; i >= 0; i--) {
-    const srcName = 'unity-upsample-' + (i + 1);
-    const dstName = 'unity-upsample-' + i;
-    if (!(srcName in this.#targets_)) {
-      continue;
-    }
-
-    const src = this.#targets_[srcName].buffer;
+  // Stops at level 1: the composite samples it directly, so a full-resolution level is never read
+  for (let i = levels - 1; i >= 1; i--) {
+    const src = this.#targets_['unity-upsample-' + (i + 1)].buffer;
     const srcMip = this.#targets_['unity-downsample-' + (i + 1)].buffer;
-    const dst = this.#targets_[dstName].buffer;
+    const dst = this.#targets_['unity-upsample-' + i].buffer;
 
-    this.#passes_['unity-upsample'].uniforms.frameTexture.value = src.texture;
-    this.#passes_['unity-upsample'].uniforms.mipTexture.value = srcMip.texture;
-    this.#passes_['unity-upsample'].uniforms.radius.value = this.#settings_.render.upRadius;
-    this.#passes_['unity-upsample'].uniforms.resolution.value = new THREE.Vector2(
-      src.width,
-      src.height,
-    );
-    this.#passes_['unity-upsample'].needsUpdate = true;
+    upsample.uniforms.frameTexture.value = src.texture;
+    upsample.uniforms.mipTexture.value = srcMip.texture;
+    upsample.uniforms.radius.value = this.#settings_.render.upRadius;
+    upsample.uniforms.resolution.value.set(src.width, src.height);
 
     this.#renderPass_('unity-upsample', renderer, dst);
   }
 
-  this.#passes_['unity-composite'].uniforms.frameTexture.value = readBuffer.texture;
-  this.#passes_['unity-composite'].uniforms.bloomTexture.value =
-    this.#targets_['unity-upsample-1'].buffer.texture;
-  this.#passes_['unity-composite'].uniforms.bloomStrength.value =
-    this.#settings_.composite.strength;
-  this.#passes_['unity-composite'].uniforms.bloomMix.value = this.#settings_.composite.mixFactor;
-  this.#passes_['unity-composite'].needsUpdate = true;
+  composite.uniforms.frameTexture.value = readBuffer.texture;
+  composite.uniforms.bloomTexture.value = this.#targets_['unity-upsample-1'].buffer.texture;
+  composite.uniforms.bloomStrength.value = this.#settings_.composite.strength;
+  composite.uniforms.bloomMix.value = this.#settings_.composite.mixFactor;
   this.#renderPass_('unity-composite', renderer, writeBuffer);
 
   this.needsSwap = true;
@@ -325,14 +294,14 @@ render(renderer, writeBuffer, readBuffer, _deltaTime, _maskActive) {
 
 ## Scene Graph & Update Logic
 
-- The `Stage` scene hosts every renderable: the camera, an HDR environment map, the coin entity, an optional texture tunnel, a gradient background sphere, and a key directional light. `onTick`/`onResize` simply delegate to child objects, so entity logic stays encapsulated.
+- The `Stage` scene hosts every renderable: the camera, an HDR environment map, the coin entity, a gradient background sphere, and a key directional light. `onTick`/`onResize` simply delegate to child objects, so entity logic stays encapsulated.
 
 ```21:75:src/webgl/components/Scene.js
 init() {
   this.background = new Color(0x000000);
   this.add(Camera);
 
-  const envMap = getAsset('hdr-studio_2k_1');
+  const envMap = getAsset('hdr-studio_1k');
   this.environment = envMap;
 
   this.environmentIntensity = 0.4;
@@ -344,8 +313,6 @@ init() {
   this.add(this.coin);
 
   // TODO: fix textures
-  this.tunnel = new TextureTunnel();
-  // this.add(this.tunnel);
 
   this.background = new Background();
   this.add(this.background);
@@ -540,7 +507,7 @@ onResize() {
 
 ### Background
 
-- Renders a reversed sphere with a gradient texture, blue-noise dithering, and layered simplex noise to avoid banding. Uniforms control multiple gradient scales, speeds, and colors, and a `sceneFolder` exposes them in the debug UI. The shader time uniform updates every frame, and `uResolution` synchronizes with viewport/DPR changes.
+- Renders a reversed sphere with a gradient texture, blue-noise dithering, and layered simplex noise to avoid banding. The three noise layers are low-frequency, so they are rendered once per frame into a small half-float target (`NOISE_HEIGHT` pixels tall) by a full-screen quad in `onTick`, and the sphere's shader samples that texture instead of evaluating the noise per screen pixel. Uniforms control multiple gradient scales, speeds, and colors, and a `sceneFolder` exposes them in the debug UI. The shader time uniform updates every frame, and `uResolution` synchronizes with viewport/DPR changes.
 
 ```35:228:src/webgl/entities/Background.js
 init() {
@@ -583,11 +550,19 @@ onResize() {
   const { width, height, dpr } = WebGLStore.viewport;
   const { uResolution } = this.mesh.material.uniforms;
   uResolution.value.set(width * dpr, height * dpr, dpr);
+
+  const aspect = width / height;
+  this.mesh.material.uniforms.uAspect.value = aspect;
+  this.noiseTarget.setSize(Math.ceil(NOISE_HEIGHT * aspect), NOISE_HEIGHT);
 }
 
 onTick({ time }) {
   const { uTime } = this.mesh.material.uniforms;
   uTime.value = time;
+
+  Renderer.setRenderTarget(this.noiseTarget);
+  this.noiseQuad.render(Renderer);
+  Renderer.setRenderTarget(null);
 }
 ```
 
@@ -731,14 +706,16 @@ onPointerUp = ({ _state, _e }) => {
 ## Resizing & Viewport Management
 
 - The React-side watcher updates both `WebGLStore` and `WebGLApp`, which in turn calls each subsystem’s `onResize`.
-- `WebGLStore.onResize` updates width/height/aspect plus breakpoint flags so responsive behaviors (coin scaling, layout decisions) can use accurate information.
+- `WebGLStore.onResize` updates width/height/aspect, the capped device pixel ratio, and breakpoint flags so responsive behaviors (coin scaling, layout decisions) can use accurate information.
 - Entities such as `Coin` and `Background`, along with `Camera`, `Renderer`, and `PostProcessing`, respond to `onResize` to update matrices, render target sizes, and resolution uniforms.
 
-```103:111:src/webgl/store/WebGLStore.ts
+```101:111:src/webgl/store/WebGLStore.ts
 onResize(width: number, height: number): void {
   this.#viewport.width = width;
   this.#viewport.height = height;
   this.#viewport.aspect = width / height;
+  // Changes when the window moves to a screen with another density
+  this.#viewport.dpr = clampDpr(window.devicePixelRatio);
 
   this.#viewport.breakpoints.xl = width >= 1280;
   this.#viewport.breakpoints.lg = width >= 1024;
@@ -756,12 +733,13 @@ onResize(): void {
 }
 ```
 
-```54:59:src/webgl/components/Renderer.js
+```55:61:src/webgl/components/Renderer.js
 onResize() {
   const { width, height, dpr } = WebGLStore.viewport;
 
+  // setPixelRatio resizes the drawing buffer too, so only call it when it changed
+  if (this.getPixelRatio() !== dpr) this.setPixelRatio(dpr);
   this.setSize(width, height);
-  this.setPixelRatio(dpr);
 }
 ```
 
@@ -867,30 +845,38 @@ setupPerfs(): void {
 }
 ```
 
-- `Renderer` enables `stats.js`, exposes renderer memory stats via the debugger UI, and allows pausing the global RAF loop.
+- `Renderer` exposes renderer memory stats via the debugger UI, loads `stats.js` on demand in debug mode, and allows pausing the global RAF loop. The canvas itself has no depth or stencil buffer: the scene is drawn into the composer's render target, which carries its own (standard, non-logarithmic) depth texture.
 
-```8:59:src/webgl/components/Renderer.js
+```7:62:src/webgl/components/Renderer.js
 class Renderer extends WebGLRenderer {
   constructor() {
     super({
       powerPreference: 'high-performance',
       antialias: false,
-      depth: true,
-      preserveDrawingBuffer: true,
-      logarithmicDepthBuffer: true,
+      // The scene is drawn into the composer's own targets, so the canvas needs neither
+      depth: false,
+      stencil: false,
     });
 
     // PostFX
     this.outputColorSpace = SRGBColorSpace;
 
-    this.addStats();
     this.addDebug();
   }
 
-  addStats() {
+  async addStats() {
+    const { default: Stats } = await import('stats-js');
+
     this.stats = new Stats();
     this.stats.dom.style.position = 'relative';
-    // ...
+    this.stats.dom.style.display = 'flex';
+    this.stats.dom.style.flexDirection = 'row';
+    this.stats.dom.style.justifyContent = 'flex-start';
+    this.stats.dom.style.pointerEvents = 'none';
+
+    for (const child of this.stats.dom.children) {
+      child.style.display = 'inline-block';
+    }
   }
 
   addDebug() {
@@ -899,13 +885,23 @@ class Renderer extends WebGLRenderer {
       label: 'geometries',
       readonly: true,
     });
-    // ...
-    rendererFolder.children[rendererFolder.children.length - 1].element.after(this.stats.dom);
+    rendererFolder.addBinding(this.info.memory, 'textures', { readonly: true });
+    rendererFolder.addBinding(GlobalRaf, 'isPaused', { label: 'Pause Raf' });
+    const lastBinding = rendererFolder.children[rendererFolder.children.length - 1].element;
+    this.addStats().then(() => lastBinding.after(this.stats.dom));
     window.addEventListener('keyup', (e) => {
       if (e.key !== 'p') return;
       GlobalRaf.isPaused = !GlobalRaf.isPaused;
       tweak.refresh();
     });
+  }
+
+  onResize() {
+    const { width, height, dpr } = WebGLStore.viewport;
+
+    // setPixelRatio resizes the drawing buffer too, so only call it when it changed
+    if (this.getPixelRatio() !== dpr) this.setPixelRatio(dpr);
+    this.setSize(width, height);
   }
 }
 ```
@@ -958,5 +954,5 @@ renderDepthVisualization() {
 
 - Rendering is synchronized through a single GSAP ticker → emitter → `WebGLApp` pipeline, ensuring deterministic update order (entities → camera → post-processing → HUD).
 - The scene graph is intentionally thin: `Scene` delegates work to child entities, so new effects can hook into the same `onTick/onResize` pattern without touching the central loop.
-- Post-processing is the heart of the pipeline: it renders the scene once via `RenderPass` and then layers SMAA, GTAO, optional motion blur, bloom, tone mapping, and film grain before handing pixels to the DOM.
+- Post-processing is the heart of the pipeline: it renders the scene once via `RenderPass` then applies bloom and a single final pass (tone mapping, film grain, sRGB) before handing pixels to the DOM. SMAA, GTAO and motion blur are debug-only.
 - Responsive behavior flows from React → `WebGLStore` → `WebGLApp.onResize`, keeping camera matrices, composer buffers, and entity uniforms in sync with the viewport so visuals and post-fx stay stable.
