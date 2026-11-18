@@ -1,8 +1,10 @@
-import { getGPUTier } from 'detect-gpu';
 import gsap from 'gsap';
 import { EventDispatcher } from 'three';
 
-const tier = getGPUTier();
+// Above 1.5 the post-processing chain costs far more GPU time than the extra sharpness is worth
+const MAX_DPR = 1.5;
+
+const clampDpr = (dpr: number): number => gsap.utils.clamp(1, MAX_DPR, dpr);
 
 interface Viewport {
   width: number;
@@ -46,7 +48,7 @@ class WebGLStore extends EventDispatcher {
       width,
       height,
       aspect: width / height,
-      dpr: gsap.utils.clamp(1, 2, dpr),
+      dpr: clampDpr(dpr),
       breakpoints: {
         xl: width >= 1280,
         lg: width >= 1024,
@@ -56,7 +58,7 @@ class WebGLStore extends EventDispatcher {
 
     this.#settings = {
       device: {
-        tier,
+        tier: null,
         fxaa: true,
         isMobile: false,
       },
@@ -104,6 +106,8 @@ class WebGLStore extends EventDispatcher {
     this.#viewport.width = width;
     this.#viewport.height = height;
     this.#viewport.aspect = width / height;
+    // Changes when the window moves to a screen with another density
+    this.#viewport.dpr = clampDpr(window.devicePixelRatio);
 
     this.#viewport.breakpoints.xl = width >= 1280;
     this.#viewport.breakpoints.lg = width >= 1024;

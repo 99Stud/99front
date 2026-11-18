@@ -1,6 +1,9 @@
 import {
   BackSide,
   Color,
+  HalfFloatType,
+  LinearFilter,
+  MathUtils,
   Mesh,
   Object3D,
   ShaderMaterial,
@@ -8,94 +11,35 @@ import {
   SRGBColorSpace,
   Vector2,
   Vector3,
+  WebGLRenderTarget,
 } from 'three';
-import { degToRad } from 'three/src/math/MathUtils.js';
+import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 
+import Renderer from '@99Stud/webgl/components/Renderer';
 import { BACKGROUND_PARAMS } from '@99Stud/webgl/store/constants';
 import WebGLStore from '@99Stud/webgl/store/WebGLStore';
 import { sceneFolder } from '@99Stud/webgl/utils/debugger';
 import { getAsset } from '@99Stud/webgl/utils/manifest/assetsLoader';
 
+const { degToRad } = MathUtils;
+
 const geometry = new SphereGeometry(10, 16, 32);
 
-export default class Background extends Object3D {
-  constructor(options) {
-    super(options);
+// The noise only has a few features across the screen, so it is evaluated in a small target
+// and upsampled, not once per screen pixel.
+const NOISE_HEIGHT = 256;
 
-    this.name = options?.name ? `Background-${options.name}` : `Background`;
-    this.settings = { ...BACKGROUND_PARAMS, ...options?.settings };
-
-    this.scale.setScalar(1);
-    this.rotation.y = degToRad(90);
-
-    this.init();
-    this.addDebug();
-  }
-
-  init() {
-    const texture = getAsset('tex-gradient');
-    texture.colorSpace = SRGBColorSpace;
-    const material = new ShaderMaterial({
-      uniforms: {
-        uTime: { value: 0 },
-        tGrad: { value: texture },
-        tBlueNoise: { value: getAsset('tex-bluenoise') },
-        uResolution: { value: new Vector3() },
-        uColorInner: { value: new Color(this.settings.colorInner) },
-        uColorMid: { value: new Color(this.settings.colorMid) },
-        uColorOuter: { value: new Color(this.settings.colorOuter) },
-        uGradientScale1: { value: this.settings.gradientScale1 },
-        uGradientScale2: { value: this.settings.gradientScale2 },
-        uGradientScale3: { value: this.settings.gradientScale3 },
-        uGradientSpeed: { value: this.settings.gradientSpeed },
-        uBlurriness: { value: this.settings.blurriness },
-        uBlueNoiseCoordOffset: { value: new Vector2(0.05, 0.05) },
-      },
-      vertexShader: `
-                varying vec2 vUv;
-
-                void main() {
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    vUv = uv;
-                }
-            `,
-      fragmentShader: `
+const NOISE_FRAGMENT_SHADER = `
                 precision highp float;
 
                 uniform float uTime;
-                uniform sampler2D tGrad;
-                uniform sampler2D tBlueNoise;
-                uniform vec3 uResolution;
-                uniform vec3 uColorInner;
-                uniform vec3 uColorMid;
-                uniform vec3 uColorOuter;
-                uniform vec2 uBlueNoiseCoordOffset;
-                uniform float uBlurriness;
+                uniform float uAspect;
                 uniform float uGradientScale1;
                 uniform float uGradientScale2;
                 uniform float uGradientScale3;
                 uniform float uGradientSpeed;
 
                 varying vec2 vUv;
-
-                #define PI 3.14159265
-
-                vec4 getNoise(sampler2D tex, vec2 uv, vec2 offset) {
-                    float invSize = 1.0/float(textureSize(tex, 0).x);
-                    return texture(tex, uv*invSize+offset);
-                }
-
-                vec4 coverTexture(sampler2D tex, vec2 imgSize, vec2 ouv, vec2 res) {
-                    vec2 s = res;
-                    vec2 i = imgSize;
-                    float rs = s.x / s.y;
-                    float ri = i.x / i.y;
-                    vec2 new = rs < ri ? vec2(i.x * s.y / i.y, s.y) : vec2(s.x, i.y * s.x / i.x);
-                    vec2 offset = (rs < ri ? vec2((new.x - s.x) / 2.0, 0.0) : vec2(0.0, (new.y - s.y) / 2.0)) / new;
-                    vec2 uv = ouv * s / new + offset;
-
-                    return texture2D(tex, uv);
-                }
 
                 // AshimaOptim https://www.shadertoy.com/view/Xd3GRf
                 vec4 permute(vec4 x) { return mod(((x*34.)+1.)*x, 289.); }
@@ -137,28 +81,140 @@ export default class Background extends Object3D {
                     return .5 + 12. * dot( m * m * m, vec4( dot(p0,x0), dot(p1,x1),dot(p2,x2), dot(p3,x3) ) );
                 }
 
+                void main() {
+                    vec2 uv = (2.0 * vUv - 1.0) * vec2(uAspect, 1.0);
+                    float t = uTime * uGradientSpeed;
+
+                    vec3 noise = vec3(
+                        snoise(vec3(uv * uGradientScale1, t)),
+                        snoise(vec3(uv * uGradientScale2, t)),
+                        snoise(vec3(uv * uGradientScale3, t))
+                    );
+
+                    // Double smoothstep for extra smoothness
+                    noise = smoothstep(-1.0, 1.0, noise);
+                    noise = smoothstep(0.0, 1.0, noise);
+
+                    gl_FragColor = vec4(noise, 1.0);
+                }
+`;
+
+export default class Background extends Object3D {
+  constructor(options) {
+    super(options);
+
+    this.name = options?.name ? `Background-${options.name}` : `Background`;
+    this.settings = { ...BACKGROUND_PARAMS, ...options?.settings };
+
+    this.scale.setScalar(1);
+    this.rotation.y = degToRad(90);
+
+    this.init();
+    this.addDebug();
+  }
+
+  init() {
+    const texture = getAsset('tex-gradient');
+    texture.colorSpace = SRGBColorSpace;
+
+    // Shared by both materials so the debug bindings drive the noise pass
+    const noiseUniforms = {
+      uTime: { value: 0 },
+      uAspect: { value: 1 },
+      uGradientScale1: { value: this.settings.gradientScale1 },
+      uGradientScale2: { value: this.settings.gradientScale2 },
+      uGradientScale3: { value: this.settings.gradientScale3 },
+      uGradientSpeed: { value: this.settings.gradientSpeed },
+    };
+
+    this.noiseTarget = new WebGLRenderTarget(1, NOISE_HEIGHT, {
+      type: HalfFloatType,
+      minFilter: LinearFilter,
+      magFilter: LinearFilter,
+      depthBuffer: false,
+    });
+    this.noiseQuad = new FullScreenQuad(
+      new ShaderMaterial({
+        uniforms: noiseUniforms,
+        vertexShader: `
+                varying vec2 vUv;
+
+                void main() {
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    vUv = uv;
+                }
+            `,
+        fragmentShader: NOISE_FRAGMENT_SHADER,
+      }),
+    );
+
+    const material = new ShaderMaterial({
+      uniforms: {
+        ...noiseUniforms,
+        tNoise: { value: this.noiseTarget.texture },
+        tGrad: { value: texture },
+        tBlueNoise: { value: getAsset('tex-bluenoise') },
+        uResolution: { value: new Vector3() },
+        uColorInner: { value: new Color(this.settings.colorInner) },
+        uColorMid: { value: new Color(this.settings.colorMid) },
+        uColorOuter: { value: new Color(this.settings.colorOuter) },
+        uBlurriness: { value: this.settings.blurriness },
+        uBlueNoiseCoordOffset: { value: new Vector2(0.05, 0.05) },
+      },
+      vertexShader: `
+                varying vec2 vUv;
+
+                void main() {
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    vUv = uv;
+                }
+            `,
+      fragmentShader: `
+                precision highp float;
+
+                uniform sampler2D tNoise;
+                uniform sampler2D tGrad;
+                uniform sampler2D tBlueNoise;
+                uniform vec3 uResolution;
+                uniform vec3 uColorInner;
+                uniform vec3 uColorMid;
+                uniform vec3 uColorOuter;
+                uniform vec2 uBlueNoiseCoordOffset;
+                uniform float uBlurriness;
+
+                varying vec2 vUv;
+
+                #define PI 3.14159265
+
+                vec4 getNoise(sampler2D tex, vec2 uv, vec2 offset) {
+                    float invSize = 1.0/float(textureSize(tex, 0).x);
+                    return texture(tex, uv*invSize+offset);
+                }
+
+                vec4 coverTexture(sampler2D tex, vec2 imgSize, vec2 ouv, vec2 res) {
+                    vec2 s = res;
+                    vec2 i = imgSize;
+                    float rs = s.x / s.y;
+                    float ri = i.x / i.y;
+                    vec2 new = rs < ri ? vec2(i.x * s.y / i.y, s.y) : vec2(s.x, i.y * s.x / i.x);
+                    vec2 offset = (rs < ri ? vec2((new.x - s.x) / 2.0, 0.0) : vec2(0.0, (new.y - s.y) / 2.0)) / new;
+                    vec2 uv = ouv * s / new + offset;
+
+                    return texture2D(tex, uv);
+                }
 
                 void main() {
                     vec2 st = gl_FragCoord.xy / uResolution.xy;
-                    vec2 uv = (2.0*gl_FragCoord.xy-uResolution.xy)/uResolution.y;
-                    vec2 pixelUnit = 1. / uResolution.xy;
 
                     // Sample base gradient with higher precision sampling
                     vec3 col = coverTexture(tGrad, vec2(1920., 1080.), st, uResolution.xy).rgb;
                     
-                    // Smooth noise application with heavy filtering
-                    float noise = snoise(vec3(uv * uGradientScale1, uTime * uGradientSpeed));
-                    float noiseSecond = snoise(vec3(uv * uGradientScale2, uTime * uGradientSpeed));
-                    float noiseThird = snoise(vec3(uv * uGradientScale3, uTime * uGradientSpeed));
-                    
-                    // Apply multiple smoothing passes to eliminate any stepping
-                    noise = smoothstep(-1.0, 1.0, noise);
-                    noise = smoothstep(0.0, 1.0, noise); // Double smoothstep for extra smoothness
-                    noiseSecond = smoothstep(-1.0, 1.0, noiseSecond);
-                    noiseSecond = smoothstep(0.0, 1.0, noiseSecond);
-                    noiseThird = smoothstep(-1.0, 1.0, noiseThird);
-                    noiseThird = smoothstep(0.0, 1.0, noiseThird);
-                    
+                    // Smoothed noise, precomputed at low resolution
+                    vec3 noises = texture2D(tNoise, st).rgb;
+                    float noise = noises.x;
+                    float noiseSecond = noises.y;
+                    float noiseThird = noises.z;
+
                     // Very gradual color mixing with micro-steps
                     col = mix(col, uColorInner, noise * 0.1); // Very subtle
                     col = mix(col, uColorOuter, noiseThird * 0.45); // Reduced
@@ -225,10 +281,18 @@ export default class Background extends Object3D {
     const { width, height, dpr } = WebGLStore.viewport;
     const { uResolution } = this.mesh.material.uniforms;
     uResolution.value.set(width * dpr, height * dpr, dpr);
+
+    const aspect = width / height;
+    this.mesh.material.uniforms.uAspect.value = aspect;
+    this.noiseTarget.setSize(Math.ceil(NOISE_HEIGHT * aspect), NOISE_HEIGHT);
   }
 
   onTick({ time }) {
     const { uTime } = this.mesh.material.uniforms;
     uTime.value = time;
+
+    Renderer.setRenderTarget(this.noiseTarget);
+    this.noiseQuad.render(Renderer);
+    Renderer.setRenderTarget(null);
   }
 }

@@ -1,15 +1,15 @@
 import { createManifestAssets } from '@99Stud/webgl/utils/manifest/assetsCreator';
 
 const textures = {
-  gradient: '/assets/textures/gradient.png',
-  normal: '/assets/textures/normal.png',
+  gradient: '/assets/textures/gradient.webp',
+  normal: '/assets/textures/normal.webp',
   bluenoise: '/assets/textures/bluenoise.png',
   '99stud': '/assets/textures/99stud.png',
   'detection-square': '/assets/textures/detection-square.png',
 };
 
 const hdrs = {
-  studio: '/assets/hdr/studio_2k_1.hdr',
+  studio: '/assets/hdr/studio_1k.hdr',
 };
 
 const gltfs = {
@@ -23,6 +23,9 @@ const ktx2s = {
   aomap: '/assets/textures/aomap.ktx2',
   lightmap: '/assets/textures/lightmap.ktx2',
 };
+
+// The largest files: the page preloads them so they download while the WebGL bundle is still loading
+export const criticalAssets = [gltfs.coin, hdrs.studio, textures.normal];
 
 export const manifest = new Map([
   ...createManifestAssets({ obj: textures, prefix: 'tex', type: 'texture' }).entries(),

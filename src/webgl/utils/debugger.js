@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import gsap from 'gsap';
-import { Pane } from 'tweakpane';
 
 const isWebGLDebug = process.env.NEXT_PUBLIC_WEBGL_DEBUG === 'true';
 
@@ -26,6 +25,8 @@ let tweakWrapper = null;
 let tweakDragger = null;
 
 if (isWebGLDebug) {
+  // Loaded on demand so tweakpane stays out of the production bundle
+  const { Pane } = await import('tweakpane');
   import('@lib/style/TweakPane.style.scss');
 
   tweak = new Pane();

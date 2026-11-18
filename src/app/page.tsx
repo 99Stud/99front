@@ -1,12 +1,19 @@
 import clsx from 'clsx';
 import Link from 'next/link';
 import { FC } from 'react';
+import { preload } from 'react-dom';
 
 import { HOME_SOCIAL_LINKS } from '@lib/pages/Home/constants';
 
+import { criticalAssets } from '@99Stud/webgl/utils/manifest/preloadManifest';
 import { HomeClient } from '@components/pages/Home/HomeClient';
 
 const Home: FC = () => {
+  // Matches the loaders' fetch mode (cors, same-origin credentials) so the preloaded response is reused
+  for (const href of criticalAssets) {
+    preload(href, { as: 'fetch', crossOrigin: 'anonymous' });
+  }
+
   return (
     <main>
       <HomeClient />

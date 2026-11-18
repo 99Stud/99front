@@ -1,12 +1,12 @@
-import { Color, DirectionalLight, Scene } from 'three';
-import { degToRad } from 'three/src/math/MathUtils.js';
+import { Color, DirectionalLight, MathUtils, Scene } from 'three';
 
 import Camera from '@99Stud/webgl/components/Camera';
 import Background from '@99Stud/webgl/entities/Background';
 import Coin from '@99Stud/webgl/entities/Coin';
-import TextureTunnel from '@99Stud/webgl/entities/TextTunnel';
 import { sceneFolder } from '@99Stud/webgl/utils/debugger';
 import { getAsset } from '@99Stud/webgl/utils/manifest/assetsLoader';
+
+const { degToRad } = MathUtils;
 
 const PARAMS = {
   envIntensity: 1.0,
@@ -22,7 +22,7 @@ class Stage extends Scene {
     this.background = new Color(0x000000);
     this.add(Camera);
 
-    const envMap = getAsset('hdr-studio_2k_1');
+    const envMap = getAsset('hdr-studio_1k');
     this.environment = envMap;
 
     this.environmentIntensity = 0.4;
@@ -33,9 +33,7 @@ class Stage extends Scene {
     this.coin = new Coin();
     this.add(this.coin);
 
-    // TODO: fix textures
-    this.tunnel = new TextureTunnel();
-    // this.add(this.tunnel);
+    // TODO: fix textures, then add a TextureTunnel (entities/TextTunnel) here
 
     this.background = new Background();
     this.add(this.background);

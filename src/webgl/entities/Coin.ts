@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import {
   Color,
   FrontSide,
+  MathUtils,
   Mesh,
   MeshStandardMaterial,
   NoColorSpace,
@@ -9,15 +10,15 @@ import {
   Vector2,
   Vector3,
 } from 'three';
-import { degToRad } from 'three/src/math/MathUtils.js';
 
 import { CustomDrag } from '@99Stud/webgl/components/CustomDrag';
-import DetectionEffect from '@99Stud/webgl/entities/DetectionEffect';
 import GlobalPointer from '@99Stud/webgl/events/Pointer';
 import { COIN_PARAMS } from '@99Stud/webgl/store/constants';
 import WebGLStore from '@99Stud/webgl/store/WebGLStore';
 import { sceneFolder } from '@99Stud/webgl/utils/debugger';
 import { getAsset } from '@99Stud/webgl/utils/manifest/assetsLoader';
+
+import type DetectionEffect from '@99Stud/webgl/entities/DetectionEffect';
 
 type CoinOptions = {
   name?: string;
@@ -40,6 +41,8 @@ type CoinOptions = {
     debugPointer?: boolean;
   };
 };
+
+const { degToRad } = MathUtils;
 
 // Fallback type for sceneFolder to avoid never type error
 const sceneFolderTyped: unknown = sceneFolder;

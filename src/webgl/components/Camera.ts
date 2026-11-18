@@ -1,9 +1,10 @@
 import { PerspectiveCamera, Vector3 } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import Renderer from '@99Stud/webgl/components/Renderer';
 import { CONTROLS_ENABLED } from '@99Stud/webgl/store/constants';
 import WebGLStore from '@99Stud/webgl/store/WebGLStore';
+
+import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 type UnitSize = {
   width: number;
@@ -11,7 +12,7 @@ type UnitSize = {
 };
 
 class Camera extends PerspectiveCamera {
-  controls!: OrbitControls;
+  controls?: OrbitControls;
   lookPos!: Vector3;
   unit!: UnitSize;
 
@@ -24,14 +25,14 @@ class Camera extends PerspectiveCamera {
     this.position.set(0, 0, 10);
     this.lookPos = new Vector3(0, 0, 0);
     this.fov = 20;
-    this.initOrbitControl();
     this.lookAt(this.lookPos);
-    this.controls.target = this.lookPos;
+    if (CONTROLS_ENABLED) this.initOrbitControl();
   }
 
-  initOrbitControl(): void {
+  async initOrbitControl(): Promise<void> {
+    const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
     this.controls = new OrbitControls(this, Renderer.domElement);
-    this.controls.enabled = CONTROLS_ENABLED;
+    this.controls.target = this.lookPos;
   }
 
   calculateUnitSize(distance: number = this.position.z): UnitSize {
@@ -46,9 +47,7 @@ class Camera extends PerspectiveCamera {
   }
 
   onTick(): void {
-    if (CONTROLS_ENABLED) {
-      this.controls.update();
-    }
+    this.controls?.update();
   }
 
   onResize(): void {
