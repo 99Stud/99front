@@ -12,6 +12,11 @@
   // Keep the workers.dev URL and per-version preview URLs once a custom domain is attached
   "workers_dev": true,
   "preview_urls": true,
+  // Workers Logs: keep request and console logs (7 days) so failures can be read after the fact
+  "observability": {
+    "enabled": true,
+    "logs": { "invocation_logs": true, "head_sampling_rate": 1 },
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
