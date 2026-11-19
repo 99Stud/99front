@@ -7,3 +7,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Git conventions
+
+- **Branches** follow Conventional Branch: `<type>/<short-kebab-description>`, e.g. `feat/site-seo`, `fix/home-safari-bars`. Types: `feat`, `fix`, `perf`, `refactor`, `docs`, `chore`, `ci`, `test`. Tools often create branches under their own prefix (`claude/...`, `codex/...`); rename the branch to this convention before its first push. Once a PR is open, the branch name is fixed: GitHub closes a PR whose head branch is renamed.
+- **Commits and PR titles** follow Conventional Commits: `<type>(<optional scope>): <summary>`, with the same types.

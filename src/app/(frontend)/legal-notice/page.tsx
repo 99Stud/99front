@@ -1,7 +1,17 @@
 import clsx from 'clsx';
 import { FC } from 'react';
 
+import { getPageMetadata } from '@lib/seo/getPageMetadata';
+
 import { Logo } from '@components/icons/99studLogo';
+
+import type { Metadata } from 'next';
+
+// Read the SEO global on each request so edits made in the CMS show up immediately
+export const dynamic = 'force-dynamic';
+
+export const generateMetadata = (): Promise<Metadata> =>
+  getPageMetadata({ path: '/legal-notice', title: 'Legal Notice' });
 
 const PrivacyPolicy: FC = () => {
   return (

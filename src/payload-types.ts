@@ -90,9 +90,11 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    'site-seo': SiteSeo;
     'social-links': SocialLink;
   };
   globalsSelect: {
+    'site-seo': SiteSeoSelect<false> | SiteSeoSelect<true>;
     'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
   };
   locale: null;
@@ -376,6 +378,25 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Title, description and share image used by search engines and link previews. Empty fields fall back to the built-in defaults.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-seo".
+ */
+export interface SiteSeo {
+  id: number;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "social-links".
  */
@@ -393,6 +414,22 @@ export interface SocialLink {
     | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-seo_select".
+ */
+export interface SiteSeoSelect<T extends boolean = true> {
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

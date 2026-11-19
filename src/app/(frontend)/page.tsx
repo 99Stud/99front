@@ -4,12 +4,17 @@ import { FC } from 'react';
 import { preload } from 'react-dom';
 
 import { getSocialLinks } from '@lib/pages/Home/getSocialLinks';
+import { getPageMetadata } from '@lib/seo/getPageMetadata';
 
 import { criticalAssets } from '@99Stud/webgl/utils/manifest/preloadManifest';
 import { HomeClient } from '@components/pages/Home/HomeClient';
 
-// Read the links on each request so edits made in the CMS show up immediately
+import type { Metadata } from 'next';
+
+// Read the links and SEO on each request so edits made in the CMS show up immediately
 export const dynamic = 'force-dynamic';
+
+export const generateMetadata = (): Promise<Metadata> => getPageMetadata({ path: '/' });
 
 const Home: FC = async () => {
   const socialLinks = await getSocialLinks();
