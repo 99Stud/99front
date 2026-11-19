@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import { formatAdminURL } from 'payload/shared';
 import { FC } from 'react';
 
+import { toSignatureLinkChoices } from '@lib/pages/Signature/signatureLinks';
+
 import { SIGNATURE_VIEW_PATH } from '@components/admin/Signature/constants';
 import { SignatureTool } from '@components/admin/Signature/SignatureTool';
 
@@ -25,10 +27,7 @@ export const SignatureView: FC<AdminViewServerProps> = async ({
     redirect(`${loginUrl}?redirect=${encodeURIComponent(signatureUrl)}`);
   }
 
-  const { links } = await payload.findGlobal({ slug: 'social-links' });
-  const signatureLinks = (links ?? [])
-    .filter((link) => link.showInSignature)
-    .map(({ label, href }) => ({ label, href }));
+  const socialLinks = await payload.findGlobal({ slug: 'social-links' });
 
   return (
     <DefaultTemplate
@@ -49,7 +48,7 @@ export const SignatureView: FC<AdminViewServerProps> = async ({
     >
       <SetStepNav nav={[{ label: 'Email signature' }]} />
       <Gutter>
-        <SignatureTool links={signatureLinks} />
+        <SignatureTool initialLinks={toSignatureLinkChoices(socialLinks)} />
       </Gutter>
     </DefaultTemplate>
   );

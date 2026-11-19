@@ -14,7 +14,7 @@ export const SocialLinks: GlobalConfig = {
       defaultValue: DEFAULT_SOCIAL_LINKS,
       admin: {
         description:
-          'Shown in the top-right corner of the home page, in this order. Links ticked "Show in email signature" also appear, in the same order, in the email signature.',
+          'Shown in the top-right corner of the home page, in this order. The email signature uses the same list: pick its links on the "Email signature" page.',
       },
       fields: [
         {
@@ -39,10 +39,12 @@ export const SocialLinks: GlobalConfig = {
           },
         },
         {
+          // Picked and saved on the "Email signature" admin page. Left out of this screen's form
+          // altogether (not just hidden), so saving this screen can never write back an old pick.
           name: 'showInSignature',
           type: 'checkbox',
-          label: 'Show in email signature',
           defaultValue: false,
+          admin: { disabled: true },
         },
       ],
     },
