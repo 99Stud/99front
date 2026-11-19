@@ -388,6 +388,7 @@ export interface SocialLink {
     | {
         label: string;
         href: string;
+        showInSignature?: boolean | null;
         id?: string | null;
       }[]
     | null;
@@ -404,6 +405,7 @@ export interface SocialLinksSelect<T extends boolean = true> {
     | {
         label?: T;
         href?: T;
+        showInSignature?: T;
         id?: T;
       };
   updatedAt?: T;

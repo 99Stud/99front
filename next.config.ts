@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
       destination: 'https://99stud.com/:path*',
       permanent: true,
     },
+    {
+      // The email-signature tool moved into the CMS admin: keep old bookmarks working
+      source: '/brand/signature',
+      destination: '/admin/signature',
+      permanent: true,
+    },
   ],
   headers: async () => [
     {
@@ -30,11 +36,6 @@ const nextConfig: NextConfig = {
           value: 'public, max-age=86400, stale-while-revalidate=2592000',
         },
       ],
-    },
-    {
-      // Internal email-signature tool: keep it out of search engines
-      source: '/brand/signature',
-      headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
     },
   ],
 };

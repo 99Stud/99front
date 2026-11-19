@@ -8,6 +8,8 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import { r2Storage } from '@payloadcms/storage-r2';
 import { buildConfig } from 'payload';
 
+import { SIGNATURE_VIEW_PATH } from '@components/admin/Signature/constants';
+
 import { Media } from './collections/Media';
 import { Posts } from './collections/Posts';
 import { Users } from './collections/Users';
@@ -96,6 +98,19 @@ export default buildConfig({
     user: Users.slug,
     importMap: {
       baseDir: path.resolve(dirname),
+    },
+    components: {
+      afterNavLinks: ['/components/admin/Signature/SignatureNavLink#SignatureNavLink'],
+      views: {
+        // Internal email-signature tool. Payload does not guard custom views: the component
+        // itself sends logged-out visitors to the login.
+        signature: {
+          Component: '/components/admin/Signature/SignatureView#SignatureView',
+          path: SIGNATURE_VIEW_PATH,
+          exact: true,
+          meta: { title: 'Email signature' },
+        },
+      },
     },
   },
   auth: {

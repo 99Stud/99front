@@ -37,6 +37,12 @@ export const SocialLinks: GlobalConfig = {
             return 'Enter a full web address starting with https://';
           },
         },
+        {
+          name: 'showInSignature',
+          type: 'checkbox',
+          label: 'Show in email signature',
+          defaultValue: false,
+        },
       ],
     },
   ],
