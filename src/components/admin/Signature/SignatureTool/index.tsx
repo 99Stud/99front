@@ -1,8 +1,17 @@
 'use client';
 
-import { Button, CheckboxInput, TextInput, toast } from '@payloadcms/ui';
+import {
+  Button,
+  CheckboxInput,
+  Collapsible,
+  Link,
+  TextInput,
+  toast,
+  useConfig,
+} from '@payloadcms/ui';
 import clsx from 'clsx';
-import { ChangeEvent, FC, useRef, useState } from 'react';
+import { formatAdminURL } from 'payload/shared';
+import { ChangeEvent, FC, MouseEvent, useRef, useState } from 'react';
 
 import { saveSignatureLinks } from '@lib/pages/Signature/saveSignatureLinks';
 import {
@@ -49,8 +58,14 @@ export const SignatureTool: FC<Props> = ({ initialLinks }) => {
   const [isSaving, setIsSaving] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const name =
-    [firstName.trim(), lastName.trim()].filter(Boolean).join(' ') || SIGNATURE_PLACEHOLDER_NAME;
+  const { config } = useConfig();
+  const socialLinksUrl = formatAdminURL({
+    adminRoute: config.routes.admin,
+    path: '/globals/social-links',
+  });
+
+  const typedName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
+  const name = typedName || SIGNATURE_PLACEHOLDER_NAME;
   // The previews and the copied signature follow the ticks, saved or not
   const pickedLinks = links.filter((link) => link.picked);
   const html = signatureHtml(name, pickedLinks);
@@ -70,7 +85,7 @@ export const SignatureTool: FC<Props> = ({ initialLinks }) => {
       setHasUnsavedPick(false);
       toast.success('Links saved for the whole team.');
     } catch {
-      toast.error('Couldn’t save the links.');
+      toast.error('Couldn’t save the links. Reload the page and try again.');
     } finally {
       setIsSaving(false);
     }
@@ -101,7 +116,9 @@ export const SignatureTool: FC<Props> = ({ initialLinks }) => {
       copied = copySelection();
     }
     if (copied) toast.success('Copied. Paste it into your mail app’s signature editor.');
-    else toast.error('Couldn’t access the clipboard.');
+    else {
+      toast.error('Couldn’t copy. Select the signature in the light preview and press Cmd/Ctrl+C.');
+    }
   };
 
   const copyHtml = async () => {
@@ -109,8 +126,13 @@ export const SignatureTool: FC<Props> = ({ initialLinks }) => {
       await navigator.clipboard.writeText(html);
       toast.success('HTML source copied.');
     } catch {
-      toast.error('Couldn’t access the clipboard.');
+      toast.error('Couldn’t copy the HTML source: the browser blocked clipboard access.');
     }
+  };
+
+  // The previews are for looking, not navigating: following a link would lose the typed name
+  const ignoreLinkClick = (event: MouseEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).closest('a')) event.preventDefault();
   };
 
   return (
@@ -137,40 +159,16 @@ export const SignatureTool: FC<Props> = ({ initialLinks }) => {
         />
       </div>
 
-      <h3 className={styles.heading}>Links</h3>
-      <p className={styles.hint}>
-        Tick the social links shown after 99stud.com. Saving applies the pick to the whole team.
-      </p>
-      {links.length > 0 ? (
-        <div className={styles.links}>
-          {links.map((link, index) => (
-            <CheckboxInput
-              checked={link.picked}
-              id={`signature-link-${index}`}
-              key={link.key}
-              label={link.label}
-              onToggle={() => togglePick(link.key)}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className={styles.hint}>No social links yet: add some in “Social Links”.</p>
-      )}
-      <div className={styles.actions}>
-        <Button
-          buttonStyle="secondary"
-          disabled={!hasUnsavedPick || isSaving}
-          margin={false}
-          onClick={savePick}
-        >
-          Save links for the team
-        </Button>
-      </div>
-
       <h3 className={styles.heading}>Preview</h3>
       <div className={styles.previews}>
         {PREVIEWS.map((preview, index) => (
-          <figure className={clsx(styles.preview, preview.className)} key={preview.label}>
+          <figure
+            // The second card repeats the first: keep it out of the accessibility tree
+            aria-hidden={index > 0 || undefined}
+            className={clsx(styles.preview, preview.className)}
+            key={preview.label}
+            onClick={ignoreLinkClick}
+          >
             <figcaption className={styles.previewLabel}>{preview.label}</figcaption>
             <div dangerouslySetInnerHTML={{ __html: html }} ref={index === 0 ? previewRef : null} />
           </figure>
@@ -178,12 +176,13 @@ export const SignatureTool: FC<Props> = ({ initialLinks }) => {
       </div>
 
       <div className={styles.actions}>
-        <Button margin={false} onClick={copySignature}>
+        <Button disabled={!typedName} margin={false} onClick={copySignature}>
           Copy signature
         </Button>
-        <Button buttonStyle="secondary" margin={false} onClick={copyHtml}>
+        <Button buttonStyle="secondary" disabled={!typedName} margin={false} onClick={copyHtml}>
           Copy HTML
         </Button>
+        {!typedName && <span className={styles.hint}>Type your name first.</span>}
       </div>
 
       <h3 className={styles.heading}>Install</h3>
@@ -194,6 +193,49 @@ export const SignatureTool: FC<Props> = ({ initialLinks }) => {
           </li>
         ))}
       </ol>
+
+      <Collapsible
+        className={styles.teamSettings}
+        header="Team settings: links in the signature"
+        initCollapsed
+      >
+        <div className={styles.teamSettingsBody}>
+          <p className={styles.hint}>
+            Tick the social links shown after 99stud.com: the previews above follow. Saving makes
+            the pick the default for everyone, the next time they copy. Signatures already installed
+            don’t change. Labels, URLs and order are edited in{' '}
+            <Link href={socialLinksUrl}>Social Links</Link>.
+          </p>
+          {links.length > 0 ? (
+            <>
+              <div className={styles.links}>
+                {links.map((link, index) => (
+                  <CheckboxInput
+                    checked={link.picked}
+                    id={`signature-link-${index}`}
+                    key={link.key}
+                    label={link.label}
+                    onToggle={() => togglePick(link.key)}
+                    readOnly={isSaving}
+                  />
+                ))}
+              </div>
+              <div className={styles.actions}>
+                <Button
+                  buttonStyle="secondary"
+                  disabled={!hasUnsavedPick || isSaving}
+                  margin={false}
+                  onClick={savePick}
+                >
+                  {isSaving ? 'Saving…' : 'Save links for the team'}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <p className={styles.hint}>There are no social links yet.</p>
+          )}
+        </div>
+      </Collapsible>
     </div>
   );
 };

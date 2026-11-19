@@ -39,11 +39,12 @@ export const SocialLinks: GlobalConfig = {
           },
         },
         {
-          // Picked and saved on the "Email signature" admin page, so not shown on this screen
+          // Picked and saved on the "Email signature" admin page. Left out of this screen's form
+          // altogether (not just hidden), so saving this screen can never write back an old pick.
           name: 'showInSignature',
           type: 'checkbox',
           defaultValue: false,
-          admin: { hidden: true },
+          admin: { disabled: true },
         },
       ],
     },

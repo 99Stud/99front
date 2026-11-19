@@ -22,8 +22,17 @@
 }
 
 .hint {
-  margin: 0 0 calc(var(--base) * 0.75);
+  margin: 0;
   color: var(--theme-elevation-500);
+}
+
+.teamSettings {
+  margin-top: calc(var(--base) * 2);
+}
+
+.teamSettingsBody {
+  display: grid;
+  gap: calc(var(--base) * 0.75);
 }
 
 .links {
@@ -65,8 +74,13 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: calc(var(--base) * 0.5);
   margin-top: var(--base);
+}
+
+.teamSettingsBody .actions {
+  margin-top: 0;
 }
 
 .steps {
