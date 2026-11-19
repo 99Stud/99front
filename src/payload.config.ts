@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite';
+import { seoPlugin } from '@payloadcms/plugin-seo';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import { r2Storage } from '@payloadcms/storage-r2';
 import { buildConfig } from 'payload';
@@ -11,7 +12,9 @@ import { buildConfig } from 'payload';
 import { Media } from './collections/Media';
 import { Posts } from './collections/Posts';
 import { Users } from './collections/Users';
+import { SiteSeo } from './globals/SiteSeo';
 import { SocialLinks } from './globals/SocialLinks';
+import { SITE_URL } from './lib/seo/constants';
 
 import type { CloudflareContext } from '@opennextjs/cloudflare';
 import type { GetPlatformProxyOptions } from 'wrangler';
@@ -103,7 +106,7 @@ export default buildConfig({
     passwordHashIterations: 100000,
   },
   collections: [Posts, Media, Users],
-  globals: [SocialLinks],
+  globals: [SiteSeo, SocialLinks],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -112,6 +115,12 @@ export default buildConfig({
   db: sqliteD1Adapter({ binding: cloudflare.env.D1 }),
   logger: isProduction ? cloudflareLogger : undefined,
   plugins: [
+    seoPlugin({
+      globals: [SiteSeo.slug],
+      uploadsCollection: Media.slug,
+      // Shown in the admin's search-result preview; the global describes the home page
+      generateURL: () => SITE_URL,
+    }),
     r2Storage({
       bucket: cloudflare.env.R2,
       collections: { media: true },

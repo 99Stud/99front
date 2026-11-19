@@ -3,6 +3,8 @@ import clsx from 'clsx';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { FC, PropsWithChildren } from 'react';
 
+import { DEFAULT_SEO, SITE_URL, TITLE_TEMPLATE } from '@lib/seo/constants';
+
 import type { Metadata, Viewport } from 'next';
 
 import './globals.css';
@@ -21,10 +23,14 @@ export const viewport: Viewport = {
   themeColor: [{ media: '(prefers-color-scheme: light)', color: '#0a0a0a' }],
 };
 
+// Base layer for every page; indexable pages add the CMS-managed description and share image
+// through `generateMetadata` (see src/lib/seo/getPageMetadata.ts)
 export const metadata: Metadata = {
-  title: '99stud | Independent Creative Collective',
-  description:
-    'Multidisciplinary collective based in Paris, Lyon and Milan. Blurring the lines between web, 3D and music.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_SEO.title,
+    template: TITLE_TEMPLATE,
+  },
   icons: [
     {
       rel: 'icon',
@@ -40,13 +46,10 @@ export const metadata: Metadata = {
     },
   ],
   creator: '99stud',
-  authors: [{ name: '99stud', url: 'https://99stud.com' }],
+  authors: [{ name: '99stud', url: SITE_URL }],
   publisher: '99stud',
-  openGraph: {
-    type: 'website',
-    title: '99stud | Independent Creative Collective',
-    description:
-      'Multidisciplinary collective based in Paris, Lyon and Milan. Blurring the lines between web, 3D and music.',
+  twitter: {
+    card: 'summary_large_image',
   },
 };
 
