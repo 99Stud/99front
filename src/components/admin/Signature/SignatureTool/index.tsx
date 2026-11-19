@@ -1,15 +1,16 @@
 'use client';
 
-import { Button, TextInput, toast } from '@payloadcms/ui';
+import { Button, CheckboxInput, TextInput, toast } from '@payloadcms/ui';
 import clsx from 'clsx';
 import { ChangeEvent, FC, useRef, useState } from 'react';
 
+import { saveSignatureLinks } from '@lib/pages/Signature/saveSignatureLinks';
 import {
   SIGNATURE_PLACEHOLDER_NAME,
   signatureHtml,
   signatureText,
 } from '@lib/pages/Signature/signature';
-import type { SignatureLink } from '@lib/pages/Signature/signature';
+import type { SignatureLinkChoice } from '@lib/pages/Signature/signatureLinks';
 
 import styles from './SignatureTool.module.scss';
 
@@ -36,18 +37,44 @@ const PREVIEWS = [
 ];
 
 type Props = {
-  // Links ticked "Show in email signature" in the "Social Links" global
-  links: SignatureLink[];
+  // Every link of the "Social Links" global, with the pick currently saved for the team
+  initialLinks: SignatureLinkChoice[];
 };
 
-export const SignatureTool: FC<Props> = ({ links }) => {
+export const SignatureTool: FC<Props> = ({ initialLinks }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [links, setLinks] = useState(initialLinks);
+  const [hasUnsavedPick, setHasUnsavedPick] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const name =
     [firstName.trim(), lastName.trim()].filter(Boolean).join(' ') || SIGNATURE_PLACEHOLDER_NAME;
-  const html = signatureHtml(name, links);
+  // The previews and the copied signature follow the ticks, saved or not
+  const pickedLinks = links.filter((link) => link.picked);
+  const html = signatureHtml(name, pickedLinks);
+
+  const togglePick = (key: string) => {
+    setLinks((current) =>
+      current.map((link) => (link.key === key ? { ...link, picked: !link.picked } : link)),
+    );
+    setHasUnsavedPick(true);
+  };
+
+  const savePick = async () => {
+    setIsSaving(true);
+    try {
+      // The saved rows come back with their definitive keys (see `signatureLinks.ts`)
+      setLinks(await saveSignatureLinks(pickedLinks.map((link) => link.key)));
+      setHasUnsavedPick(false);
+      toast.success('Links saved for the whole team.');
+    } catch {
+      toast.error('Couldn’t save the links.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const copySelection = () => {
     if (!previewRef.current) return false;
@@ -67,7 +94,7 @@ export const SignatureTool: FC<Props> = ({ links }) => {
       await navigator.clipboard.write([
         new ClipboardItem({
           'text/html': new Blob([html], { type: 'text/html' }),
-          'text/plain': new Blob([signatureText(name, links)], { type: 'text/plain' }),
+          'text/plain': new Blob([signatureText(name, pickedLinks)], { type: 'text/plain' }),
         }),
       ]);
     } catch {
@@ -108,6 +135,36 @@ export const SignatureTool: FC<Props> = ({ links }) => {
           placeholder="Lastname"
           value={lastName}
         />
+      </div>
+
+      <h3 className={styles.heading}>Links</h3>
+      <p className={styles.hint}>
+        Tick the social links shown after 99stud.com. Saving applies the pick to the whole team.
+      </p>
+      {links.length > 0 ? (
+        <div className={styles.links}>
+          {links.map((link, index) => (
+            <CheckboxInput
+              checked={link.picked}
+              id={`signature-link-${index}`}
+              key={link.key}
+              label={link.label}
+              onToggle={() => togglePick(link.key)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className={styles.hint}>No social links yet: add some in “Social Links”.</p>
+      )}
+      <div className={styles.actions}>
+        <Button
+          buttonStyle="secondary"
+          disabled={!hasUnsavedPick || isSaving}
+          margin={false}
+          onClick={savePick}
+        >
+          Save links for the team
+        </Button>
       </div>
 
       <h3 className={styles.heading}>Preview</h3>
