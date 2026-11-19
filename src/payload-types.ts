@@ -403,12 +403,13 @@ export interface SiteSeo {
 export interface SocialLink {
   id: number;
   /**
-   * Shown in the top-right corner of the home page, in this order.
+   * Shown in the top-right corner of the home page, in this order. Links ticked "Show in email signature" also appear, in the same order, in the email signature.
    */
   links?:
     | {
         label: string;
         href: string;
+        showInSignature?: boolean | null;
         id?: string | null;
       }[]
     | null;
@@ -441,6 +442,7 @@ export interface SocialLinksSelect<T extends boolean = true> {
     | {
         label?: T;
         href?: T;
+        showInSignature?: T;
         id?: T;
       };
   updatedAt?: T;
