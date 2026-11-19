@@ -107,6 +107,9 @@ export default buildConfig({
     components: {
       afterNavLinks: ['/components/admin/Signature/SignatureNavLink#SignatureNavLink'],
       beforeLogin: ['/components/admin/Auth/LoginHeading#LoginHeading'],
+      graphics: {
+        Icon: '/components/admin/Icon#Icon',
+      },
       views: {
         // Internal email-signature tool. Payload does not guard custom views: the component
         // itself sends logged-out visitors to the login.
