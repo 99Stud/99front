@@ -45,7 +45,9 @@
       0 8px 24px rgb(0 0 0 / 60%);
   }
 
-  .login__brand {
+  // Payload's own logo, replaced by the tile above
+  .login__brand,
+  .verify__brand {
     display: none;
   }
 
@@ -98,7 +100,8 @@
     }
   }
 
-  a {
+  // Text links only: buttons that are links (`a.btn`) keep their button colors
+  a:not(.btn) {
     display: inline-block;
     margin-top: 12px;
     color: var(--auth-muted);
