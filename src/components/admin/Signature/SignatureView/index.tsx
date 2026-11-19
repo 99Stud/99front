@@ -20,9 +20,9 @@ export const SignatureView: FC<AdminViewServerProps> = async ({
   // Payload does not guard custom views: without this check the tool would be public
   if (!user) {
     const { admin, routes } = payload.config;
-    const login = formatAdminURL({ adminRoute: routes.admin, path: admin.routes.login });
-    const signature = formatAdminURL({ adminRoute: routes.admin, path: SIGNATURE_VIEW_PATH });
-    redirect(`${login}?redirect=${encodeURIComponent(signature)}`);
+    const loginUrl = formatAdminURL({ adminRoute: routes.admin, path: admin.routes.login });
+    const signatureUrl = formatAdminURL({ adminRoute: routes.admin, path: SIGNATURE_VIEW_PATH });
+    redirect(`${loginUrl}?redirect=${encodeURIComponent(signatureUrl)}`);
   }
 
   const { links } = await payload.findGlobal({ slug: 'social-links' });
@@ -40,7 +40,12 @@ export const SignatureView: FC<AdminViewServerProps> = async ({
       req={req}
       searchParams={searchParams}
       user={user}
-      visibleEntities={visibleEntities}
+      // A copy, as in Payload's own root view: passing the object itself can throw React 19's
+      // "Cannot assign to read only property" error
+      visibleEntities={{
+        collections: visibleEntities.collections,
+        globals: visibleEntities.globals,
+      }}
     >
       <SetStepNav nav={[{ label: 'Email signature' }]} />
       <Gutter>
