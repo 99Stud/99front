@@ -13,7 +13,8 @@ export const SocialLinks: GlobalConfig = {
       type: 'array',
       defaultValue: DEFAULT_SOCIAL_LINKS,
       admin: {
-        description: 'Shown in the top-right corner of the home page, in this order.',
+        description:
+          'In this order. Tick where each link appears: the top-right corner of the home page, the email signature.',
       },
       fields: [
         {
@@ -36,6 +37,12 @@ export const SocialLinks: GlobalConfig = {
             }
             return 'Enter a full web address starting with https://';
           },
+        },
+        {
+          name: 'showOnHome',
+          type: 'checkbox',
+          label: 'Show on home page',
+          defaultValue: true,
         },
         {
           name: 'showInSignature',
