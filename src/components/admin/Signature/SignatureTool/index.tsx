@@ -194,12 +194,8 @@ export const SignatureTool: FC<Props> = ({ initialLinks }) => {
         ))}
       </ol>
 
-      <Collapsible
-        className={styles.teamSettings}
-        header="Team settings: links in the signature"
-        initCollapsed
-      >
-        <div className={styles.teamSettingsBody}>
+      <Collapsible className={styles.linkPick} header="Links in the signature" initCollapsed>
+        <div className={styles.linkPickBody}>
           <p className={styles.hint}>
             Tick the social links shown after 99stud.com: the previews above follow. Saving makes
             the pick the default for everyone, the next time they copy. Signatures already installed
