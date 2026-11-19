@@ -1,0 +1,130 @@
+// The admin is dark only (`admin.theme` in the Payload config). The dark end of Payload's grey
+// scale is deepened so every screen sits on the same black as the auth screens: page background
+// (900), inputs and cards (850, 800), borders (750, 700). Colors only, no layout.
+:root {
+  --color-base-900: rgb(0, 0, 0);
+  --color-base-850: rgb(13, 13, 13);
+  --color-base-800: rgb(23, 23, 23);
+  --color-base-750: rgb(31, 31, 31);
+  --color-base-700: rgb(46, 46, 46);
+}
+
+// Auth screens (login, first user, forgot and reset password, logout…) all render in Payload's
+// minimal template, so `.template-minimal` scopes their restyling. These selectors are Payload
+// internals: check the screens after an upgrade.
+.template-minimal {
+  --auth-muted: rgb(255 255 255 / 55%);
+  --auth-border: rgb(255 255 255 / 12%);
+  --auth-radius: 12px;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(60% 45% at 50% 0%, rgb(255 255 255 / 9%), transparent 70%),
+    radial-gradient(35% 40% at 0% 100%, rgb(255 255 255 / 7%), transparent 70%),
+    radial-gradient(35% 40% at 100% 100%, rgb(255 255 255 / 5%), transparent 70%), #000;
+  color: #fafafa;
+
+  &--width-normal &__wrap {
+    max-width: 360px;
+  }
+
+  // The logo tile. Only the login view has a logo slot, so it is drawn here for every screen.
+  &__wrap::before {
+    content: '';
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 24px;
+    border: 1px solid var(--auth-border);
+    border-radius: 16px;
+    background:
+      url('/brand/99stud-mark-white.svg') center / 34px no-repeat,
+      linear-gradient(180deg, rgb(255 255 255 / 14%), rgb(255 255 255 / 2%));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 18%),
+      0 8px 24px rgb(0 0 0 / 60%);
+  }
+
+  .login__brand {
+    display: none;
+  }
+
+  h1 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    text-align: center;
+  }
+
+  h1 + p,
+  p:first-child {
+    margin: 0 0 32px;
+    color: var(--auth-muted);
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .field-label {
+    padding-bottom: 6px;
+    color: var(--auth-muted);
+    font-size: 13px;
+  }
+
+  input:not([type='checkbox'], [type='hidden']) {
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--auth-border);
+    border-radius: var(--auth-radius);
+    background: rgb(255 255 255 / 5%);
+    box-shadow: none;
+    color: #fafafa;
+    font-size: 14px;
+    transition:
+      border-color 150ms,
+      box-shadow 150ms;
+
+    &:hover {
+      border-color: rgb(255 255 255 / 22%);
+      box-shadow: none;
+    }
+
+    &:focus,
+    &:focus-visible {
+      border-color: rgb(255 255 255 / 40%);
+      outline: none;
+      box-shadow: 0 0 0 3px rgb(255 255 255 / 10%);
+    }
+  }
+
+  a {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--auth-muted);
+    font-size: 13px;
+    transition: color 150ms;
+
+    &:hover {
+      color: #fafafa;
+    }
+  }
+
+  .form-submit {
+    width: 100%;
+  }
+
+  .btn--style-primary {
+    --bg-color: #fafafa;
+    --color: #0a0a0a;
+    --hover-bg: #d4d4d4;
+    --hover-color: #0a0a0a;
+
+    width: 100%;
+    height: 44px;
+    margin-block: 20px 0;
+    border-radius: var(--auth-radius);
+    font-size: 14px;
+    font-weight: 500;
+  }
+}

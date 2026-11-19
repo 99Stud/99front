@@ -28,6 +28,7 @@ import { MetaDescriptionComponent as MetaDescriptionComponent_a8a977ebc872c5d5ea
 import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { SignatureNavLink as SignatureNavLink_2356ceb070865ce1dc7a16f186f5db9f } from '../../../components/admin/Signature/SignatureNavLink'
+import { LoginHeading as LoginHeading_a78a808b9e48c6ea88a0a73ca51ab2a7 } from '../../../components/admin/Auth/LoginHeading'
 import { SignatureView as SignatureView_f1bacaa0524b80bc30c414dd1550f97f } from '../../../components/admin/Signature/SignatureView'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { R2ClientUploadHandler as R2ClientUploadHandler_85cc02ed84006fcc91d3aff39dda669d } from '@payloadcms/storage-r2/client'
@@ -64,6 +65,7 @@ export const importMap = {
   "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#PreviewComponent": PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "/components/admin/Signature/SignatureNavLink#SignatureNavLink": SignatureNavLink_2356ceb070865ce1dc7a16f186f5db9f,
+  "/components/admin/Auth/LoginHeading#LoginHeading": LoginHeading_a78a808b9e48c6ea88a0a73ca51ab2a7,
   "/components/admin/Signature/SignatureView#SignatureView": SignatureView_f1bacaa0524b80bc30c414dd1550f97f,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/storage-r2/client#R2ClientUploadHandler": R2ClientUploadHandler_85cc02ed84006fcc91d3aff39dda669d
