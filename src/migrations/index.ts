@@ -1,5 +1,6 @@
 import * as migration_20261118_162246_initial from './20261118_162246_initial';
 import * as migration_20261118_171019_social_links from './20261118_171019_social_links';
+import * as migration_20261119_092405_site_seo from './20261119_092405_site_seo';
 import * as migration_20261119_095414_social_links_signature from './20261119_095414_social_links_signature';
 
 export const migrations = [
@@ -14,8 +15,13 @@ export const migrations = [
     name: '20261118_171019_social_links',
   },
   {
+    up: migration_20261119_092405_site_seo.up,
+    down: migration_20261119_092405_site_seo.down,
+    name: '20261119_092405_site_seo',
+  },
+  {
     up: migration_20261119_095414_social_links_signature.up,
     down: migration_20261119_095414_social_links_signature.down,
-    name: '20261119_095414_social_links_signature'
+    name: '20261119_095414_social_links_signature',
   },
 ];

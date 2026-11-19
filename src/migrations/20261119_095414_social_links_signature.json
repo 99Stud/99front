@@ -1145,6 +1145,80 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "site_seo": {
+      "name": "site_seo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "meta_title": {
+          "name": "meta_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "meta_description": {
+          "name": "meta_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "meta_image_id": {
+          "name": "meta_image_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "site_seo_meta_meta_image_idx": {
+          "name": "site_seo_meta_meta_image_idx",
+          "columns": [
+            "meta_image_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "site_seo_meta_image_id_media_id_fk": {
+          "name": "site_seo_meta_image_id_media_id_fk",
+          "tableFrom": "site_seo",
+          "tableTo": "media",
+          "columnsFrom": [
+            "meta_image_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "social_links_links": {
       "name": "social_links_links",
       "columns": {
@@ -1268,6 +1342,6 @@
   "internal": {
     "indexes": {}
   },
-  "id": "bb7abf02-4422-4ec0-b91c-4c6656807753",
+  "id": "5eff9f79-ccb5-4144-853a-4dea5057a766",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }
