@@ -33,6 +33,19 @@ const eslintConfig = defineConfig([
   },
   {
     rules: {
+      // Reach other folders through the path aliases of tsconfig.json
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['../*'], message: 'Use a path alias (@components, @lib, @webgl, @99Stud).' },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    rules: {
       'import/order': [
         'error',
         {

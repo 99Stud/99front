@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite';
+import { resendAdapter } from '@payloadcms/email-resend';
 import { seoPlugin } from '@payloadcms/plugin-seo';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import { r2Storage } from '@payloadcms/storage-r2';
@@ -16,6 +17,7 @@ import { Posts } from './collections/Posts';
 import { Users } from './collections/Users';
 import { SiteSeo } from './globals/SiteSeo';
 import { SocialLinks } from './globals/SocialLinks';
+import { ADMIN_META } from './lib/admin/constants';
 import { SITE_URL } from './lib/seo/constants';
 
 import type { CloudflareContext } from '@opennextjs/cloudflare';
@@ -99,11 +101,18 @@ const cloudflare =
 export default buildConfig({
   admin: {
     user: Users.slug,
+    // Dark only, like the auth screens: see custom.scss
+    theme: 'dark',
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: ADMIN_META,
     components: {
       afterNavLinks: ['/components/admin/Signature/SignatureNavLink#SignatureNavLink'],
+      beforeLogin: ['/components/admin/Auth/LoginHeading#LoginHeading'],
+      graphics: {
+        Icon: '/components/admin/Icon#Icon',
+      },
       views: {
         // Internal email-signature tool. Payload does not guard custom views: the component
         // itself sends logged-out visitors to the login.
@@ -128,6 +137,13 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: sqliteD1Adapter({ binding: cloudflare.env.D1 }),
+  // Auth emails (password reset) and `payload.sendEmail`. cms.99stud.com is the domain verified
+  // in Resend.
+  email: resendAdapter({
+    defaultFromAddress: 'noreply@cms.99stud.com',
+    defaultFromName: '99stud',
+    apiKey: process.env.RESEND_API_KEY || '',
+  }),
   logger: isProduction ? cloudflareLogger : undefined,
   plugins: [
     seoPlugin({

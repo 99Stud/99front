@@ -403,7 +403,7 @@ export interface SiteSeo {
 export interface SocialLink {
   id: number;
   /**
-   * In this order. Tick where each link appears: the top-right corner of the home page, the email signature.
+   * In this order. Tick "Show on home page" for the links in the top-right corner of the home page. The email signature uses the same list: pick its links on the "Email signature" page.
    */
   links?:
     | {
