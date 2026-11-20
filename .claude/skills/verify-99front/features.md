@@ -70,7 +70,8 @@ One section per feature area. Each answers the same four questions: what exists,
 - Logged out: screenshot the login screen.
 - Log in with the local throwaway user; screenshot the dashboard and one collection list.
 - Check the nav shows the "Email signature" link after the collections and globals.
-- Read the `<head>` of `/admin/login`: the title ends in "- 99stud CMS", `og:image` is the absolute URL of `/brand/99stud-cms-og.png`, and no icon link points at a Payload favicon.
+- Read the `<head>` of `/admin/login`: the title ends in "- 99stud CMS", `og:image` is the absolute URL of `/brand/99stud-cms-share.png`, and no icon link points at a Payload favicon.
+- Logged out, read the `<head>` of an unknown admin URL such as `/admin/nope`: same branding, title "Not Found - 99stud CMS".
 
 **Gotchas**
 
