@@ -14,6 +14,7 @@ import {
   Text,
 } from 'react-email';
 
+import { CMS_NAME } from '@lib/admin/constants';
 import { SITE_URL } from '@lib/seo/constants';
 
 import type { CSSProperties } from 'react';
@@ -113,7 +114,7 @@ export const ResetPasswordEmail = ({ email, resetURL }: Props) => (
               width={40}
             />
           </Link>
-          <Text style={styles.eyebrow}>99stud CMS</Text>
+          <Text style={styles.eyebrow}>{CMS_NAME}</Text>
           <Heading style={styles.heading}>Reset your password</Heading>
           {/* An hour is the default `forgotPassword.expiration` of the users collection */}
           <Text style={styles.text}>
