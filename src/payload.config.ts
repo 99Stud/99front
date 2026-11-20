@@ -105,6 +105,27 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: {
+      titleSuffix: '- 99stud CMS',
+      // Replaces Payload's own favicons; the file is src/app/favicon.ico
+      icons: [{ rel: 'icon', type: 'image/x-icon', url: '/favicon.ico' }],
+      // Payload's generated image is served from `/api/og` and resolved against `serverURL`, which
+      // is unset here: the tag ended up pointing at localhost. One static image instead, with an
+      // absolute URL like the site's own share images.
+      defaultOGImageType: 'off',
+      openGraph: {
+        siteName: '99stud CMS',
+        description: 'Content management for 99stud.com.',
+        images: [
+          {
+            url: `${SITE_URL}/brand/99stud-cms-og.png`,
+            width: 1200,
+            height: 630,
+            alt: '99stud',
+          },
+        ],
+      },
+    },
     components: {
       afterNavLinks: ['/components/admin/Signature/SignatureNavLink#SignatureNavLink'],
       beforeLogin: ['/components/admin/Auth/LoginHeading#LoginHeading'],
