@@ -28,7 +28,7 @@
     max-width: 360px;
   }
 
-  // The logo tile. Only the login view has a logo slot, so it is drawn here for every screen.
+  // The logo tile, showing the outline logo. Only the login view has a logo slot, so it is drawn here for every screen.
   &__wrap::before {
     content: '';
     display: block;

@@ -34,7 +34,7 @@ One section per feature area. Each answers the same four questions: what exists,
 
 **How to get to it**: the "Legal Notice" link on the home page, or `/legal-notice`.
 
-**Driving it**: follow the link from the home page; check the title in `<head>` carries the page name and the site name.
+**Driving it**: follow the link from the home page; check the title in `<head>` carries the page name and the site name, and the sticker logo shows under the title on the dark background (the site is dark only).
 
 **Gotchas**: none known.
 
@@ -61,7 +61,7 @@ One section per feature area. Each answers the same four questions: what exists,
 
 ## Admin: login and branding
 
-**What exists**: the Payload admin at `/admin`, dark only, with the 99stud icon and a branded login heading.
+**What exists**: the Payload admin at `/admin`, dark only, with the outline logo and a branded login heading.
 
 **How to get to it**: `/admin` (logged out shows the login screen).
 

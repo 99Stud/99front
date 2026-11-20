@@ -7,7 +7,7 @@ import { DOCUMENT_PATHS } from '@lib/routes/documentPaths';
 import { getPageMetadata } from '@lib/seo/getPageMetadata';
 
 import { RichText } from '@components/content/RichText';
-import { Logo } from '@components/icons/99studLogo';
+import { StickerLogo } from '@components/icons/StickerLogo';
 
 import type { Metadata } from 'next';
 
@@ -34,7 +34,7 @@ const PolicyPage: FC<Props> = async ({ params }) => {
     <div className={clsx('min-h-screen py-12', 'flex flex-col items-center justify-center gap-6')}>
       <header className={clsx('space-y-6')}>
         <h1 className={clsx('text-2xl font-bold uppercase')}>{policy.title}</h1>
-        <Logo />
+        <StickerLogo />
       </header>
       <main className={clsx('px-6')}>
         <RichText className={clsx('prose-sm max-w-[450px]')} data={policy.content} />

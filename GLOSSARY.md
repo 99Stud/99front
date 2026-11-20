@@ -44,6 +44,18 @@ _Avoid_: WYSIWYG, HTML content, body
 The values compiled into the site that a public page shows when the CMS field is empty or the database cannot be read.
 _Avoid_: hardcoded values, placeholders
 
+### Brand
+
+Both logos draw the same low-poly 99stud figure. The `/brand` file names predate these terms and stay as they are: sent emails and pasted email signatures link to them.
+
+**Sticker logo**:
+The figure filled in black with white line art, inside a white die-cut halo that keeps it readable on any background. Shown on policies, in the email signature and in CMS emails. Files: `public/brand/99stud-logo-dark.svg` and `.png`.
+_Avoid_: dark logo, black logo
+
+**Outline logo**:
+The figure's white line art alone, with no fill. The main 99stud logo, shown in the admin. File: `public/brand/99stud-mark-white.svg`.
+_Avoid_: mark, white logo, icon
+
 ### Email signature
 
 **Email signature**:
