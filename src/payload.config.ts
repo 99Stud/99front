@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite';
+import { resendAdapter } from '@payloadcms/email-resend';
 import { seoPlugin } from '@payloadcms/plugin-seo';
 import { LinkFeature, lexicalEditor } from '@payloadcms/richtext-lexical';
 import { r2Storage } from '@payloadcms/storage-r2';
@@ -144,6 +145,13 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: sqliteD1Adapter({ binding: cloudflare.env.D1 }),
+  // Auth emails (password reset) and `payload.sendEmail`. cms.99stud.com is the domain verified
+  // in Resend.
+  email: resendAdapter({
+    defaultFromAddress: 'noreply@cms.99stud.com',
+    defaultFromName: '99stud',
+    apiKey: process.env.RESEND_API_KEY || '',
+  }),
   logger: isProduction ? cloudflareLogger : undefined,
   plugins: [
     seoPlugin({

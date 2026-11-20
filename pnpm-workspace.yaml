@@ -1,9 +1,12 @@
 packages:
   - '.'
 
+# Dependencies are pinned: `pnpm add` writes the exact version
+saveExact: true
+
 onlyBuiltDependencies:
-  - "@parcel/watcher"
-  - "@tailwindcss/oxide"
+  - '@parcel/watcher'
+  - '@tailwindcss/oxide'
   - sharp
   - unrs-resolver
   - esbuild
