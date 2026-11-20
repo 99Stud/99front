@@ -87,6 +87,7 @@ The site runs on Cloudflare Workers through OpenNext. Payload CMS lives in the s
 
 - `pnpm dev` uses a local D1 database and R2 bucket under `.wrangler/`. Run `pnpm payload migrate` once to create the tables. `PAYLOAD_SECRET` must be set in `.env`.
 - After changing a collection, run `pnpm payload migrate:create <name>` and `pnpm generate:types`, and commit the results.
+- After adding or moving a custom admin component, run `pnpm generate:importmap` and commit the result.
 - `pnpm run deploy` applies pending migrations to the remote D1 database, then builds and deploys. The build itself reads the remote database, so it needs `wrangler login`. Use `pnpm run deploy`, not `pnpm deploy`, which is a pnpm built-in.
 
 ### Preview deployments
@@ -99,3 +100,7 @@ Cloudflare Workers Builds builds every push. On `main` it deploys production; on
 - The preview database starts empty: open `/admin` on the preview URL to create its first user. To run the migrations by hand, use `pnpm run preview:database` (needs `wrangler login`).
 - Previews have their own `PAYLOAD_SECRET`, set once with `pnpm exec wrangler preview base-config secret put PAYLOAD_SECRET`. New previews receive it when they are created.
 - `WORKER_SELF_REFERENCE` is not bound in previews: a service binding from a preview would call the production Worker.
+
+## Working with coding agents
+
+`pnpm check` runs lint, typecheck and the tests (`pnpm test`, Vitest); CI runs it on every pull request. The flow we follow with agents (which skill at which step, and where each kind of project knowledge lives) is in [docs/agents/workflow.md](docs/agents/workflow.md).
