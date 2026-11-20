@@ -18,6 +18,7 @@ import { Posts } from './collections/Posts';
 import { Users } from './collections/Users';
 import { SiteSeo } from './globals/SiteSeo';
 import { SocialLinks } from './globals/SocialLinks';
+import { ADMIN_META } from './lib/admin/constants';
 import { validateLinkUrl } from './lib/richText/validateLinkUrl';
 import { LINKABLE_COLLECTIONS } from './lib/routes/documentPaths';
 import { SITE_URL } from './lib/seo/constants';
@@ -109,6 +110,7 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: ADMIN_META,
     components: {
       afterNavLinks: ['/components/admin/Signature/SignatureNavLink#SignatureNavLink'],
       beforeLogin: ['/components/admin/Auth/LoginHeading#LoginHeading'],
