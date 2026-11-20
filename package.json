@@ -40,6 +40,7 @@
     "payload": "3.94.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "react-email": "6.11.6",
     "sass": "1.108.2",
     "three": "0.181.1",
     "tiny-emitter": "2.1.0",
