@@ -18,7 +18,8 @@ import { Posts } from './collections/Posts';
 import { Users } from './collections/Users';
 import { SiteSeo } from './globals/SiteSeo';
 import { SocialLinks } from './globals/SocialLinks';
-import { LINKABLE_COLLECTIONS } from './lib/documentPaths';
+import { LINKABLE_COLLECTIONS } from './lib/richText/documentPaths';
+import { validateLinkUrl } from './lib/richText/validateLinkUrl';
 import { SITE_URL } from './lib/seo/constants';
 
 import type { CloudflareContext } from '@opennextjs/cloudflare';
@@ -137,7 +138,21 @@ export default buildConfig({
     // have a public route
     features: ({ defaultFeatures }) => [
       ...defaultFeatures.filter(({ key }) => key !== 'relationship' && key !== 'link'),
-      LinkFeature({ enabledCollections: LINKABLE_COLLECTIONS }),
+      LinkFeature({
+        enabledCollections: LINKABLE_COLLECTIONS,
+        // Payload only refuses addresses containing a space
+        fields: ({ defaultFields }) =>
+          defaultFields.map((field) =>
+            'name' in field && field.name === 'url' && field.type === 'text'
+              ? {
+                  ...field,
+                  validate: (value: unknown, { siblingData }: { siblingData?: object }) =>
+                    (siblingData as { linkType?: string } | undefined)?.linkType === 'internal' ||
+                    validateLinkUrl(value as string | null | undefined),
+                }
+              : field,
+          ),
+      }),
     ],
   }),
   secret: process.env.PAYLOAD_SECRET || '',

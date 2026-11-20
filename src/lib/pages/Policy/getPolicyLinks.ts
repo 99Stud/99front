@@ -1,14 +1,14 @@
 import { getPayload } from 'payload';
 
-import { DOCUMENT_PATHS } from '@lib/documentPaths';
+import { DEFAULT_LEGAL_NOTICE, LEGAL_NOTICE_SLUG } from '@lib/pages/Policy/constants';
+import { DOCUMENT_PATHS } from '@lib/richText/documentPaths';
 
 import config from '@payload-config';
 
 export type PolicyLink = { label: string; href: string };
 
-// The legal notice is seeded by the `policies` migration
 const DEFAULT_POLICY_LINKS: PolicyLink[] = [
-  { label: 'Legal Notice', href: DOCUMENT_PATHS.policies('legal-notice') },
+  { label: DEFAULT_LEGAL_NOTICE.title, href: DOCUMENT_PATHS.policies(LEGAL_NOTICE_SLUG) },
 ];
 
 // Links to every published policy, so renaming, unpublishing or adding one in the CMS never

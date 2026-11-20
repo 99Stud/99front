@@ -2,12 +2,12 @@ import clsx from 'clsx';
 import { notFound } from 'next/navigation';
 import { FC } from 'react';
 
-import { DOCUMENT_PATHS } from '@lib/documentPaths';
 import { getPolicy } from '@lib/pages/Policy/getPolicy';
+import { DOCUMENT_PATHS } from '@lib/richText/documentPaths';
 import { getPageMetadata } from '@lib/seo/getPageMetadata';
 
+import { RichText } from '@components/content/RichText';
 import { Logo } from '@components/icons/99studLogo';
-import { RichText } from '@components/RichText';
 
 import type { Metadata } from 'next';
 

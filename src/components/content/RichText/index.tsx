@@ -6,17 +6,12 @@ import {
 import clsx from 'clsx';
 import { FC } from 'react';
 
-import { DOCUMENT_PATHS, isLinkableCollection } from '@lib/documentPaths';
+import { resolveInternalLink } from '@lib/richText/resolveInternalLink';
 
 import type { DefaultTypedEditorState, SerializedLinkNode } from '@payloadcms/richtext-lexical';
 
-const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }): string => {
-  const { doc } = linkNode.fields;
-  // The linked document is only populated when the content is fetched with `depth >= 1`
-  if (!doc || typeof doc.value !== 'object' || typeof doc.value.slug !== 'string') return '#';
-  if (!isLinkableCollection(doc.relationTo)) return '#';
-  return DOCUMENT_PATHS[doc.relationTo](doc.value.slug);
-};
+const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }): string =>
+  resolveInternalLink(linkNode.fields.doc);
 
 const converters: JSXConvertersFunction = ({ defaultConverters }) => ({
   ...defaultConverters,

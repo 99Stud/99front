@@ -1,12 +1,10 @@
 import { slugField, ValidationError } from 'payload';
 
+import { isReservedSlug } from '@lib/pages/Policy/reservedSlugs';
+
 import { authenticatedOrPublished } from './access';
 
 import type { CollectionConfig, TextField } from 'payload';
-
-// Policies are served at `/<slug>`, where these first path segments already belong to other
-// routes or to folders of `public/`
-const RESERVED_SLUGS = ['admin', 'api', 'assets', 'brand', 'libs'];
 
 // Legal pages (legal notice, privacy policy…), each served at `/<slug>`
 export const Policies: CollectionConfig = {
@@ -38,7 +36,7 @@ export const Policies: CollectionConfig = {
         slug.hooks = {
           beforeChange: [
             ({ value }) => {
-              if (RESERVED_SLUGS.includes(value)) {
+              if (isReservedSlug(value)) {
                 throw new ValidationError({
                   collection: 'policies',
                   errors: [

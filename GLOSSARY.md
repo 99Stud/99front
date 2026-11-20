@@ -24,6 +24,14 @@ _Avoid_: OG image, social card, thumbnail
 An article written in the CMS, either a draft or published. Visitors only ever see published posts.
 _Avoid_: article, blog entry, news
 
+**Policy**:
+A legal page written in the CMS (legal notice, privacy policy…), served at `/<slug>` once published. The legal notice is the one policy with built-in defaults.
+_Avoid_: legal page, terms page, CMS page
+
+**Rich text**:
+Formatted content written in the CMS editor (headings, lists, links), as used by policies and posts.
+_Avoid_: WYSIWYG, HTML content, body
+
 **Built-in defaults**:
 The values compiled into the site that a public page shows when the CMS field is empty or the database cannot be read.
 _Avoid_: hardcoded values, placeholders
