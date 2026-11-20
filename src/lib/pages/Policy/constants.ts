@@ -12,17 +12,17 @@ const text = (value: string) => ({
   style: '',
 });
 
-const element = { version: 1, direction: 'ltr' as const, format: '' as const, indent: 0 };
+const elementProps = { version: 1, direction: 'ltr' as const, format: '' as const, indent: 0 };
 
 const heading = (value: string) => ({
-  ...element,
+  ...elementProps,
   type: 'heading' as const,
   tag: 'h2' as const,
   children: [text(value)],
 });
 
 const paragraph = (value: string) => ({
-  ...element,
+  ...elementProps,
   type: 'paragraph' as const,
   textFormat: 0,
   textStyle: '',
@@ -30,13 +30,13 @@ const paragraph = (value: string) => ({
 });
 
 const bulletList = (items: string[]) => ({
-  ...element,
+  ...elementProps,
   type: 'list' as const,
   listType: 'bullet' as const,
   start: 1,
   tag: 'ul' as const,
   children: items.map((item, index) => ({
-    ...element,
+    ...elementProps,
     type: 'listitem' as const,
     checked: undefined,
     value: index + 1,
@@ -46,7 +46,7 @@ const bulletList = (items: string[]) => ({
 
 const content: DefaultTypedEditorState = {
   root: {
-    ...element,
+    ...elementProps,
     type: 'root',
     children: [
       heading('Publisher'),
@@ -61,6 +61,8 @@ const content: DefaultTypedEditorState = {
   },
 };
 
-// The legal notice is a legal requirement, so it is the one policy with built-in defaults: the
-// text the `policies` migration seeded, shown if the database cannot be read
+// The legal notice is a legal requirement, so it is the one policy with built-in defaults, shown
+// if the database cannot be read. A deliberate copy of the text the `policies` migration seeded:
+// a migration must keep producing the same rows forever, so it cannot import from here. Later
+// edits made in the CMS are not reflected in this copy.
 export const DEFAULT_LEGAL_NOTICE = { title: 'Legal Notice', content };

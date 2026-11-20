@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { FC } from 'react';
 
 import { getPolicy } from '@lib/pages/Policy/getPolicy';
-import { DOCUMENT_PATHS } from '@lib/richText/documentPaths';
+import { DOCUMENT_PATHS } from '@lib/routes/documentPaths';
 import { getPageMetadata } from '@lib/seo/getPageMetadata';
 
 import { RichText } from '@components/content/RichText';

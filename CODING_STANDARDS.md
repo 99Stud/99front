@@ -14,6 +14,7 @@ These were derived from the code as it stood in November 2026. A rule the team d
 ## Public pages keep rendering
 
 - A public page that reads the CMS catches a failed read, logs it, and renders the **built-in defaults**. See `getSocialLinks` and `getPageMetadata`.
+- A page whose whole content is one CMS document with no built-in defaults (a policy other than the legal notice) lets the failed read through to the error page: a 404 would say the document does not exist. See `getPolicy`.
 
 ## Payload and data
 

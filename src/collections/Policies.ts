@@ -1,12 +1,13 @@
-import { slugField, ValidationError } from 'payload';
+import { slugField } from 'payload';
+import { text } from 'payload/shared';
 
 import { isReservedSlug } from '@lib/pages/Policy/reservedSlugs';
 
 import { authenticatedOrPublished } from './access';
 
-import type { CollectionConfig, TextField } from 'payload';
+import type { CollectionConfig, TextField, TextFieldSingleValidation } from 'payload';
 
-// Legal pages (legal notice, privacy policy…), each served at `/<slug>`
+// Each policy is served at `/<slug>`, hence the reserved slugs
 export const Policies: CollectionConfig = {
   slug: 'policies',
   admin: {
@@ -31,26 +32,12 @@ export const Policies: CollectionConfig = {
           (field): field is TextField => 'name' in field && field.name === 'slug',
         );
         if (!slug) throw new Error('slugField() no longer exposes its `slug` field');
-        // A hook rather than `validate`: the slug generated from the title only exists once the
-        // field hooks have run, after validation
-        slug.hooks = {
-          beforeChange: [
-            ({ value }) => {
-              if (isReservedSlug(value)) {
-                throw new ValidationError({
-                  collection: 'policies',
-                  errors: [
-                    {
-                      path: 'slug',
-                      message: `"${value}" is already used by another part of the site.`,
-                    },
-                  ],
-                });
-              }
-              return value;
-            },
-          ],
-        };
+        // Field hooks run before validation, so this also sees a slug generated from the title
+        const validate: TextFieldSingleValidation = (value, options) =>
+          typeof value === 'string' && isReservedSlug(value)
+            ? `"${value}" is already used by another part of the site.`
+            : text(value, options);
+        slug.validate = validate as TextField['validate'];
         return row;
       },
     }),

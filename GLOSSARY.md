@@ -28,6 +28,14 @@ _Avoid_: article, blog entry, news
 A legal page written in the CMS (legal notice, privacy policy…), served at `/<slug>` once published. The legal notice is the one policy with built-in defaults.
 _Avoid_: legal page, terms page, CMS page
 
+**Reserved slug**:
+A slug a policy cannot take, because that address already belongs to the admin, the API or a static folder.
+_Avoid_: forbidden slug, blacklisted slug
+
+**Linkable collection**:
+A CMS collection whose documents have a public page, so rich text can link to them.
+_Avoid_: routable collection, public collection
+
 **Rich text**:
 Formatted content written in the CMS editor (headings, lists, links), as used by policies and posts.
 _Avoid_: WYSIWYG, HTML content, body

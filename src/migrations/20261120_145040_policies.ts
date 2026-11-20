@@ -1,6 +1,7 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-d1-sqlite'
 
-// Hand-written: Lexical nodes for the legal notice seeded below
+// Hand-written: builders that keep the Lexical JSON of the legal notice seeded below readable.
+// Kept inside the migration, which must not depend on application code that can change later.
 const text = (value: string) => ({
   type: 'text', version: 1, text: value, format: 0, detail: 0, mode: 'normal', style: '',
 })

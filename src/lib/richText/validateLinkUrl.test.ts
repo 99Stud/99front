@@ -14,6 +14,13 @@ describe('validateLinkUrl', () => {
     }
   });
 
+  it('has no address to check on a link to a CMS document', () => {
+    expect(validateLinkUrl(undefined, 'internal')).toBe(true);
+    expect(validateLinkUrl('http://99stud.com', 'custom')).toEqual(
+      expect.stringContaining('https://'),
+    );
+  });
+
   it('refuses text that is not a full address', () => {
     for (const url of ['99stud.com', '/legal-notice', '', null, undefined]) {
       expect(validateLinkUrl(url)).toEqual(expect.stringContaining('https://'));

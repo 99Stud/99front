@@ -1,4 +1,4 @@
-import { DOCUMENT_PATHS, isLinkableCollection } from '@lib/richText/documentPaths';
+import { DOCUMENT_PATHS, isLinkableCollection } from '@lib/routes/documentPaths';
 
 // The target of an internal rich text link, as Payload stores it: `value` is the linked document
 // when the content was fetched with `depth >= 1`, and only its id otherwise

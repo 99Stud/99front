@@ -1,7 +1,7 @@
 import { getPayload } from 'payload';
 
 import { DEFAULT_LEGAL_NOTICE, LEGAL_NOTICE_SLUG } from '@lib/pages/Policy/constants';
-import { DOCUMENT_PATHS } from '@lib/richText/documentPaths';
+import { DOCUMENT_PATHS } from '@lib/routes/documentPaths';
 
 import config from '@payload-config';
 

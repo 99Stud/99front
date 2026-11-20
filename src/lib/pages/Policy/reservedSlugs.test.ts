@@ -9,6 +9,11 @@ describe('isReservedSlug', () => {
     }
   });
 
+  it('is not fooled by capital letters', () => {
+    expect(isReservedSlug('Admin')).toBe(true);
+    expect(isReservedSlug('API')).toBe(true);
+  });
+
   it('lets a policy use any other slug', () => {
     expect(isReservedSlug('legal-notice')).toBe(false);
     expect(isReservedSlug('administration')).toBe(false);

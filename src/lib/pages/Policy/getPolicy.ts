@@ -7,10 +7,10 @@ import config from '@payload-config';
 
 import type { Policy } from '@99Stud/payload-types';
 
-export type PolicyContent = Pick<Policy, 'title' | 'content'>;
+export type PolicyPageContent = Pick<Policy, 'title' | 'content'>;
 
 // Cached per request: the page and its metadata both need the document
-export const getPolicy = cache(async (slug: string): Promise<PolicyContent | null> => {
+export const getPolicy = cache(async (slug: string): Promise<PolicyPageContent | null> => {
   try {
     const payload = await getPayload({ config });
     const { docs } = await payload.find({

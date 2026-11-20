@@ -18,11 +18,12 @@ import { Posts } from './collections/Posts';
 import { Users } from './collections/Users';
 import { SiteSeo } from './globals/SiteSeo';
 import { SocialLinks } from './globals/SocialLinks';
-import { LINKABLE_COLLECTIONS } from './lib/richText/documentPaths';
 import { validateLinkUrl } from './lib/richText/validateLinkUrl';
+import { LINKABLE_COLLECTIONS } from './lib/routes/documentPaths';
 import { SITE_URL } from './lib/seo/constants';
 
 import type { CloudflareContext } from '@opennextjs/cloudflare';
+import type { TextField, TextFieldSingleValidation } from 'payload';
 import type { GetPlatformProxyOptions } from 'wrangler';
 
 // Adapted from Payload's official `with-cloudflare-d1` template.
@@ -140,18 +141,19 @@ export default buildConfig({
       ...defaultFeatures.filter(({ key }) => key !== 'relationship' && key !== 'link'),
       LinkFeature({
         enabledCollections: LINKABLE_COLLECTIONS,
-        // Payload only refuses addresses containing a space
+        // A pasted `http://` address would become a link on its own, then block the save with a
+        // message that does not say why. Editors add links with the link button instead.
+        disableAutoLinks: 'creationOnly',
         fields: ({ defaultFields }) =>
-          defaultFields.map((field) =>
-            'name' in field && field.name === 'url' && field.type === 'text'
-              ? {
-                  ...field,
-                  validate: (value: unknown, { siblingData }: { siblingData?: object }) =>
-                    (siblingData as { linkType?: string } | undefined)?.linkType === 'internal' ||
-                    validateLinkUrl(value as string | null | undefined),
-                }
-              : field,
-          ),
+          defaultFields.map((field) => {
+            if (field.name !== 'url' || field.type !== 'text') return field;
+            // Payload only refuses addresses containing a space
+            const validate: TextFieldSingleValidation = (value, { siblingData }) =>
+              validateLinkUrl(value, (siblingData as { linkType?: string }).linkType);
+            // Payload's own hook percent-encodes any address its looser check dislikes
+            // (`https://localhost`, a `mailto:` with a spaced subject) before validation
+            return { ...field, hooks: {}, validate } as TextField;
+          }),
       }),
     ],
   }),

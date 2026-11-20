@@ -4,7 +4,7 @@ import {
   DOCUMENT_PATHS,
   isLinkableCollection,
   LINKABLE_COLLECTIONS,
-} from '@lib/richText/documentPaths';
+} from '@lib/routes/documentPaths';
 
 describe('DOCUMENT_PATHS', () => {
   it('serves a policy at the root of the site, under its slug', () => {
