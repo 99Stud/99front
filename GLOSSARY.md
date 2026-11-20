@@ -9,8 +9,12 @@ Seeded from the code as it stood in November 2026. `/grill-with-docs` sharpens i
 ### Site content
 
 **Social links**:
-The ordered list of labelled `https` links the team manages in the CMS. The home page shows all of them; the email signature shows the picked ones.
+The ordered list of labelled `https` links the team manages in the CMS. The home page shows the home links; the email signature shows the signature links.
 _Avoid_: socials, networks, footer links
+
+**Home link**:
+A social link ticked "Show on home page", shown in the top-right corner of the home page. New links are ticked by default.
+_Avoid_: visible link, home social
 
 **Site SEO**:
 The CMS-managed title, description and share image that indexable pages fall back to.

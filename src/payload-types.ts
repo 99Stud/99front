@@ -453,12 +453,13 @@ export interface SiteSeo {
 export interface SocialLink {
   id: number;
   /**
-   * Shown in the top-right corner of the home page, in this order. The email signature uses the same list: pick its links on the "Email signature" page.
+   * In this order. Tick "Show on home page" for the links in the top-right corner of the home page. The email signature uses the same list: pick its links on the "Email signature" page.
    */
   links?:
     | {
         label: string;
         href: string;
+        showOnHome?: boolean | null;
         showInSignature?: boolean | null;
         id?: string | null;
       }[]
@@ -492,6 +493,7 @@ export interface SocialLinksSelect<T extends boolean = true> {
     | {
         label?: T;
         href?: T;
+        showOnHome?: T;
         showInSignature?: T;
         id?: T;
       };

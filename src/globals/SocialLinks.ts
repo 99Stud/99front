@@ -14,7 +14,7 @@ export const SocialLinks: GlobalConfig = {
       defaultValue: DEFAULT_SOCIAL_LINKS,
       admin: {
         description:
-          'Shown in the top-right corner of the home page, in this order. The email signature uses the same list: pick its links on the "Email signature" page.',
+          'In this order. Tick "Show on home page" for the links in the top-right corner of the home page. The email signature uses the same list: pick its links on the "Email signature" page.',
       },
       fields: [
         {
@@ -37,6 +37,12 @@ export const SocialLinks: GlobalConfig = {
             }
             return 'Enter a full web address starting with https://';
           },
+        },
+        {
+          name: 'showOnHome',
+          type: 'checkbox',
+          label: 'Show on home page',
+          defaultValue: true,
         },
         {
           // Picked and saved on the "Email signature" admin page. Left out of this screen's form
