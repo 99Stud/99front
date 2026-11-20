@@ -9,16 +9,17 @@ These were derived from the code as it stood in November 2026. A rule the team d
 - **Every Server Function and custom admin view checks the login itself.** Payload guards its own routes, not ours; see `saveSignatureLinks` and `SignatureView`.
 - **A Local API write made for a user passes `overrideAccess: false` and `user`**, so the collection's access rules apply. See `saveSignatureLinks`.
 - **A Server Function validates the shape of its arguments** before using them, and re-reads the data it is about to change instead of trusting what the page sent.
-- **A CMS field rendered as a link target is validated to `https`** in the field config.
+- **A CMS field rendered as a link target is validated to `https`** in the field config. Rich text links also accept `mailto:`, for contact addresses; see `validateLinkUrl`.
 
 ## Public pages keep rendering
 
 - A public page that reads the CMS catches a failed read, logs it, and renders the **built-in defaults**. See `getSocialLinks` and `getPageMetadata`.
+- A page whose whole content is one CMS document with no built-in defaults (a policy other than the legal notice) lets the failed read through to the error page: a 404 would say the document does not exist. See `getPolicy`.
 
 ## Payload and data
 
 - **A schema change ships whole in one PR**: the collection or global, its migration, and the regenerated `src/payload-types.ts`.
-- **Generated files are regenerated, never hand-edited**: `src/payload-types.ts`, `src/migrations/**`, `src/app/(payload)/**`, `cloudflare-env.d.ts`.
+- **Generated files are regenerated, never hand-edited**: `src/payload-types.ts`, `src/migrations/**`, `src/app/(payload)/**`, `cloudflare-env.d.ts`. The one exception is a data step added to a generated migration (a backfill, a seed), marked with a `Hand-written:` comment that says why.
 - **A destructive migration** (dropped or renamed column) says so in the PR body, because every open **preview** shares the **preview data**. The README describes the dedicated-database route.
 - **Previews stay off production.** A change to bindings touches `wrangler.jsonc` (`previews` block) and `wrangler.preview.jsonc` together, and adds no path from a preview build to the production database or bucket.
 

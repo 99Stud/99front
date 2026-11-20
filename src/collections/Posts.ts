@@ -1,5 +1,7 @@
 import { slugField } from 'payload';
 
+import { authenticatedOrPublished } from './access';
+
 import type { CollectionConfig } from 'payload';
 
 export const Posts: CollectionConfig = {
@@ -9,8 +11,7 @@ export const Posts: CollectionConfig = {
     defaultColumns: ['title', '_status', 'publishedAt'],
   },
   access: {
-    // Visitors only see published posts; logged-in editors also see drafts
-    read: ({ req }) => (req.user ? true : { _status: { equals: 'published' } }),
+    read: authenticatedOrPublished,
   },
   versions: {
     drafts: true,

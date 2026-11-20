@@ -4,6 +4,7 @@ import { FC } from 'react';
 import { preload } from 'react-dom';
 
 import { getSocialLinks } from '@lib/pages/Home/getSocialLinks';
+import { getPolicyLinks } from '@lib/pages/Policy/getPolicyLinks';
 import { getPageMetadata } from '@lib/seo/getPageMetadata';
 
 import { criticalAssets } from '@99Stud/webgl/utils/manifest/preloadManifest';
@@ -17,7 +18,7 @@ export const dynamic = 'force-dynamic';
 export const generateMetadata = (): Promise<Metadata> => getPageMetadata({ path: '/' });
 
 const Home: FC = async () => {
-  const socialLinks = await getSocialLinks();
+  const [socialLinks, policyLinks] = await Promise.all([getSocialLinks(), getPolicyLinks()]);
 
   // Matches the loaders' fetch mode (cors, same-origin credentials) so the preloaded response is reused
   for (const href of criticalAssets) {
@@ -36,9 +37,15 @@ const Home: FC = async () => {
         <nav
           className={clsx('fixed top-4 left-4 lg:bottom-4', 'flex flex-col gap-4', 'text-white')}
         >
-          <Link className={clsx('text-sm font-medium underline select-none')} href="/legal-notice">
-            Legal Notice
-          </Link>
+          {policyLinks.map((link) => (
+            <Link
+              className={clsx('text-sm font-medium underline select-none')}
+              href={link.href}
+              key={link.href}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
         <nav className={clsx('fixed top-4 right-4', 'flex flex-col gap-3', 'text-right font-mono')}>
           {socialLinks.map((link) => (
