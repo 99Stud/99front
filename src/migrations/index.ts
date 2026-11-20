@@ -2,7 +2,8 @@ import * as migration_20261118_162246_initial from './20261118_162246_initial';
 import * as migration_20261118_171019_social_links from './20261118_171019_social_links';
 import * as migration_20261119_092405_site_seo from './20261119_092405_site_seo';
 import * as migration_20261119_095414_social_links_signature from './20261119_095414_social_links_signature';
-import * as migration_20261119_151953_social_links_home from './20261119_151953_social_links_home';
+import * as migration_20261120_145040_policies from './20261120_145040_policies';
+import * as migration_20261120_154950_social_links_home from './20261120_154950_social_links_home';
 
 export const migrations = [
   {
@@ -26,8 +27,13 @@ export const migrations = [
     name: '20261119_095414_social_links_signature',
   },
   {
-    up: migration_20261119_151953_social_links_home.up,
-    down: migration_20261119_151953_social_links_home.down,
-    name: '20261119_151953_social_links_home',
+    up: migration_20261120_145040_policies.up,
+    down: migration_20261120_145040_policies.down,
+    name: '20261120_145040_policies',
+  },
+  {
+    up: migration_20261120_154950_social_links_home.up,
+    down: migration_20261120_154950_social_links_home.down,
+    name: '20261120_154950_social_links_home',
   },
 ];

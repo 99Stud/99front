@@ -6,21 +6,25 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite';
 import { resendAdapter } from '@payloadcms/email-resend';
 import { seoPlugin } from '@payloadcms/plugin-seo';
-import { lexicalEditor } from '@payloadcms/richtext-lexical';
+import { LinkFeature, lexicalEditor } from '@payloadcms/richtext-lexical';
 import { r2Storage } from '@payloadcms/storage-r2';
 import { buildConfig } from 'payload';
 
 import { SIGNATURE_VIEW_PATH } from '@components/admin/Signature/constants';
 
 import { Media } from './collections/Media';
+import { Policies } from './collections/Policies';
 import { Posts } from './collections/Posts';
 import { Users } from './collections/Users';
 import { SiteSeo } from './globals/SiteSeo';
 import { SocialLinks } from './globals/SocialLinks';
 import { ADMIN_META } from './lib/admin/constants';
+import { validateLinkUrl } from './lib/richText/validateLinkUrl';
+import { LINKABLE_COLLECTIONS } from './lib/routes/documentPaths';
 import { SITE_URL } from './lib/seo/constants';
 
 import type { CloudflareContext } from '@opennextjs/cloudflare';
+import type { TextField, TextFieldSingleValidation } from 'payload';
 import type { GetPlatformProxyOptions } from 'wrangler';
 
 // Adapted from Payload's official `with-cloudflare-d1` template.
@@ -129,9 +133,32 @@ export default buildConfig({
     // Workers' WebCrypto rejects Payload's default of 600,000 PBKDF2 iterations
     passwordHashIterations: 100000,
   },
-  collections: [Posts, Media, Users],
+  collections: [Posts, Policies, Media, Users],
   globals: [SiteSeo, SocialLinks],
-  editor: lexicalEditor(),
+  editor: lexicalEditor({
+    // Shared by every rich text field (policies, posts). Only offers what the site's RichText
+    // component can render: no relationship nodes, and internal links only to collections that
+    // have a public route
+    features: ({ defaultFeatures }) => [
+      ...defaultFeatures.filter(({ key }) => key !== 'relationship' && key !== 'link'),
+      LinkFeature({
+        enabledCollections: LINKABLE_COLLECTIONS,
+        // A pasted `http://` address would become a link on its own, then block the save with a
+        // message that does not say why. Editors add links with the link button instead.
+        disableAutoLinks: 'creationOnly',
+        fields: ({ defaultFields }) =>
+          defaultFields.map((field) => {
+            if (field.name !== 'url' || field.type !== 'text') return field;
+            // Payload only refuses addresses containing a space
+            const validate: TextFieldSingleValidation = (value, { siblingData }) =>
+              validateLinkUrl(value, (siblingData as { linkType?: string }).linkType);
+            // Payload's own hook percent-encodes any address its looser check dislikes
+            // (`https://localhost`, a `mailto:` with a spaced subject) before validation
+            return { ...field, hooks: {}, validate } as TextField;
+          }),
+      }),
+    ],
+  }),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
