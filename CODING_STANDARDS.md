@@ -1,13 +1,13 @@
 # Coding standards
 
-Read at **review** time (`/code-review` picks this file up), not while implementing. It holds the judgement calls only: anything ESLint, Prettier or `tsc` already enforces stays out. When a rule here turns out to be mechanical, replace it with a lint rule and delete it.
+Read at **review** time (`/mattpocock-skills:code-review` picks this file up), not while implementing. It holds the judgement calls only: anything ESLint, Prettier or `tsc` already enforces stays out. When a rule here turns out to be mechanical, replace it with a lint rule and delete it.
 
 These were derived from the code as it stood in November 2026. A rule the team doesn't hold is a bug in this file: delete it.
 
 ## Trust boundaries
 
 - **Every Server Function and custom admin view checks the login itself.** Payload guards its own routes, not ours; see `saveSignatureLinks` and `SignatureView`.
-- **Local API calls made for a user pass `overrideAccess: false` and `user`**, so the collection's access rules apply.
+- **A Local API write made for a user passes `overrideAccess: false` and `user`**, so the collection's access rules apply. See `saveSignatureLinks`.
 - **A Server Function validates the shape of its arguments** before using them, and re-reads the data it is about to change instead of trusting what the page sent.
 - **A CMS field rendered as a link target is validated to `https`** in the field config.
 
@@ -28,10 +28,9 @@ These were derived from the code as it stood in November 2026. A rule the team d
 
 ## Structure
 
-- **Components** live at `src/components/<area>/<Name>/index.tsx`, with their styles beside them as `<Name>.module.scss`. Page-specific ones go under `pages/<Page>/`, admin ones under `admin/`.
-- **Logic that is not a component** lives in `src/lib/pages/<Page>/` or `src/lib/<topic>/`, as small pure functions the component imports. `signature.ts` and `signatureLinks.ts` are the model: the component holds state, the lib holds the rules.
-- **Imports use the path aliases** (`@components`, `@lib`, `@webgl`, `@99Stud`, `@payload-config`) rather than climbing with `../..`.
-- **Names come from `GLOSSARY.md`.** A new domain word in a diff either matches the glossary or is added to it in the same PR.
+- **Components** live at `src/components/<area>/<Name>/index.tsx`, with their styles inside that folder as `<Name>.module.scss`. Page-specific ones go under `pages/<Page>/`, admin ones under `admin/`.
+- **Rules and data transformations** live in `src/lib/pages/<Page>/` or `src/lib/<topic>/`, as small pure functions the component imports. `signature.ts` and `signatureLinks.ts` are the model: the component holds state, the lib holds the rules.
+- **New names come from `GLOSSARY.md`.** A new domain word in a diff either matches the glossary or is added to it in the same PR.
 
 ## Tests
 
@@ -48,9 +47,7 @@ These were derived from the code as it stood in November 2026. A rule the team d
 - Animation advances on the **tick** (`site:tick` through the shared `Emitter`), never on its own `requestAnimationFrame`.
 - Per-frame code reuses its vectors, colours and arrays. Allocation belongs in setup.
 - Every asset an **entity** uses is declared in the **manifest**.
-- Tunable values live in `src/webgl/store/constants.ts`, where the debug panel can reach them.
 
 ## Dependencies
 
-- Added with an exact version (`pnpm add <pkg> -E`).
 - A new dependency is justified in the PR body: what the platform or an installed package could not do.

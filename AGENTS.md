@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Where things are
 
-- **Check your work**: `pnpm check` (lint + typecheck + tests), then prove the behaviour in the running app with the `verify-99front` skill. `pnpm test <path>` runs one test file.
+- **Check your work**: `pnpm check`, then prove the behaviour in the running app with the `verify-99front` skill.
 - **Payload schema or admin components** (collections, globals, custom views): the migration, type and import-map steps are in `README.md`, "CMS (Payload on Cloudflare)".
 - **WebGL scene** (`src/webgl/`): read `WEBGL_RENDERING.md` first.
 - **Reviewing a diff**: `CODING_STANDARDS.md` holds the judgement calls; lint and Prettier hold the rest.

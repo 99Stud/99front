@@ -6,7 +6,7 @@ const instagram = { label: 'Instagram', href: 'https://www.instagram.com/99stud/
 const linkedIn = { label: 'LinkedIn', href: 'https://www.linkedin.com/company/99stud/' };
 
 const hrefs = (html: string) =>
-  [...html.matchAll(/<a href="([^"]*)" style="color/g)].map((m) => m[1]);
+  [...html.matchAll(/<a href="([^"]*)"[^>]*>[^<]+<\/a>/g)].map((m) => m[1]);
 
 describe('signatureHtml', () => {
   it('lists 99stud.com first, then the signature links in the order given', () => {

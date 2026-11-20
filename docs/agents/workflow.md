@@ -13,7 +13,7 @@ Most skills come from the [`mattpocock-skills`](https://github.com/mattpocock/sk
 | 3. Plan (multi-session work only) | `/to-spec` then `/to-tickets` _(you)_ | A spec issue, split into small tickets with their blocking order.                                                                     |
 | 4. Build                          | `/implement` _(you)_                  | The change, built test-first where there is logic to test, and reviewed before the commit.                                            |
 | 5. Prove                          | `verify-99front`                      | Evidence from the running app: what was driven, what was observed.                                                                    |
-| 6. Review                         | `/code-review`                        | Two separate reports: against `CODING_STANDARDS.md`, and against the spec.                                                            |
+| 6. Review                         | `/mattpocock-skills:code-review`      | Two separate reports: against `CODING_STANDARDS.md`, and against the spec.                                                            |
 | 7. Ship                           | `/pr`                                 | A PR body with the change, the evidence, and how risky the merge is.                                                                  |
 | 8. Learn                          | `/retro` _(you)_                      | Suggested fixes to the agent's environment: a lint rule, a pointer, a standard.                                                       |
 
@@ -46,3 +46,11 @@ Small change, one session: steps 1, 4, 5, 7.
 | `CODING_STANDARDS.md` | the reviewer               | Judgement calls tooling cannot enforce.                        |
 | `.claude/skills/`     | agents, on demand          | Repo-specific procedures.                                      |
 | `docs/agents/`        | the skills                 | Tracker, labels, domain-doc layout.                            |
+
+## Where this setup comes from
+
+- [Matt Pocock's skills](https://github.com/mattpocock/skills): the main flow, the glossary, the short `AGENTS.md`, standards read at review time.
+- [poteto's verification-skill example](https://github.com/poteto/verification-skill-example) (Lauren Tan): the shape of `verify-99front`, a launch-and-prove skill with a feature map.
+- [Cursor's thermos plugin](https://github.com/cursor/plugins/tree/main/thermos): the thermo-nuclear code quality review, vendored as is.
+
+Type the review step in full (`/mattpocock-skills:code-review`): Claude Code also ships a built-in `/code-review`, which hunts bugs and does not read `CODING_STANDARDS.md` the same way.

@@ -26,7 +26,7 @@ _Avoid_: article, blog entry, news
 
 **Built-in defaults**:
 The values compiled into the site that a public page shows when the CMS field is empty or the database cannot be read.
-_Avoid_: fallbacks, hardcoded values
+_Avoid_: hardcoded values, placeholders
 
 ### Email signature
 
@@ -36,7 +36,7 @@ _Avoid_: mail footer, sign-off
 
 **Signature tool**:
 The admin page (`/admin/signature`) where a logged-in team member types their name, picks the signature links and copies the email signature.
-_Avoid_: signature generator, signature page, brand page
+_Avoid_: signature generator, brand page
 
 **Signature link**:
 A social link picked to appear in the email signature. The pick is shared by the whole team.

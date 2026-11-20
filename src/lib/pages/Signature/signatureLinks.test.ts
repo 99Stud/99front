@@ -13,6 +13,9 @@ const links = [
 const neverSaved: SocialLink = { id: 1, links };
 const saved: SocialLink = { id: 1, links, createdAt: '2026-11-19T09:54:14.000Z' };
 
+const keys = (socialLinks: SocialLink) =>
+  toSignatureLinkChoices(socialLinks).map((choice) => choice.key);
+
 const pickedLabels = (rows: ReturnType<typeof withSignaturePick>) =>
   rows.filter((row) => row.showInSignature).map((row) => row.label);
 
@@ -24,15 +27,22 @@ describe('toSignatureLinkChoices', () => {
     ]);
   });
 
-  it('identifies a row by its id once the global is saved', () => {
-    expect(toSignatureLinkChoices(saved).map((choice) => choice.key)).toEqual(['a1', 'b2']);
+  it('keeps a saved link under the same key when its URL is edited', () => {
+    const edited = {
+      ...saved,
+      links: links.map((link) => ({ ...link, href: `${link.href}/new` })),
+    };
+
+    expect(keys(edited)).toEqual(keys(saved));
   });
 
-  it('identifies a row by its URL while the global has never been saved', () => {
-    expect(toSignatureLinkChoices(neverSaved).map((choice) => choice.key)).toEqual([
-      'https://instagram.test',
-      'https://behance.test',
-    ]);
+  it('keeps a never-saved link under the same key when Payload hands out new row ids', () => {
+    const readAgain = {
+      ...neverSaved,
+      links: links.map((link) => ({ ...link, id: `${link.id}x` })),
+    };
+
+    expect(keys(readAgain)).toEqual(keys(neverSaved));
   });
 
   it('offers nothing when the global has no links', () => {

@@ -30,7 +30,7 @@ One section per feature area. Each answers the same four questions: what exists,
 
 ## Legal notice
 
-**What exists**: a static text page.
+**What exists**: a page of fixed text. Its metadata is read from the CMS on each request, like the home page's.
 
 **How to get to it**: the "Legal Notice" link on the home page, or `/legal-notice`.
 
