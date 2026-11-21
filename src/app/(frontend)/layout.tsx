@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const viewport: Viewport = {
-  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#0a0a0a' }],
+  themeColor: '#0a0a0a',
 };
 
 // Base layer for every page; indexable pages add the CMS-managed description and share image

@@ -43,7 +43,7 @@ export default class TextureTunnel extends Object3D {
   }
 
   init() {
-    const texture = getAsset('tex-99stud');
+    const texture = getAsset('tex-99stud-wordmark');
     texture.wrapS = RepeatWrapping;
     texture.wrapT = RepeatWrapping;
     texture.flipY = true;

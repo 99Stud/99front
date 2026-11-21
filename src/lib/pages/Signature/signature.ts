@@ -27,7 +27,7 @@ export const signatureHtml = (
 ) => `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
   <tr>
     <td style="padding:0 16px 0 0;vertical-align:middle;">
-      <a href="https://99stud.com" style="text-decoration:none;"><img src="https://99stud.com/brand/99stud-logo-dark.png" width="71" height="64" alt="99stud" style="display:block;width:71px;min-width:71px;height:64px;border:0;"></a>
+      <a href="https://99stud.com" style="text-decoration:none;"><img src="https://99stud.com/brand/99stud-sticker-logo.png" width="71" height="64" alt="99stud" style="display:block;width:71px;min-width:71px;height:64px;border:0;"></a>
     </td>
     <td style="vertical-align:top;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:17px;">
       <div style="font-size:16px;line-height:21px;font-weight:bold;">${escapeHtml(name)}</div>

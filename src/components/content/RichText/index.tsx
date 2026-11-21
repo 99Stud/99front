@@ -52,7 +52,7 @@ type Props = {
 // typography plugin, since rich text arrives as bare elements that Tailwind's reset leaves unstyled
 export const RichText: FC<Props> = ({ data, className }) => (
   <LexicalRichText
-    className={clsx('prose dark:prose-invert', className)}
+    className={clsx('prose prose-invert', className)}
     converters={converters}
     data={data}
   />

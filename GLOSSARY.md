@@ -48,6 +48,26 @@ _Avoid_: WYSIWYG, HTML content, body
 The values compiled into the site that a public page shows when the CMS field is empty or the database cannot be read.
 _Avoid_: hardcoded values, placeholders
 
+### Brand
+
+The 99stud logos all draw the same low-poly figure; the wordmark spells the name. Files are named after these terms; the old `/brand` URLs redirect to them, since sent emails and pasted email signatures still load them.
+
+**Sticker logo**:
+The figure filled in black with white line art, inside a white die-cut halo that keeps it readable on any background. Shown on policies, in the email signature and in CMS emails. Files: `public/brand/99stud-sticker-logo.svg` and `.png`; component `StickerLogo`.
+_Avoid_: dark logo, black logo
+
+**Solid logo**:
+The sticker logo without its halo, so only readable on light backgrounds. Not used by the site. Files: `public/brand/99stud-solid-logo.svg` and `.png`.
+_Avoid_: default logo, light logo
+
+**Outline logo**:
+The figure's white line art alone, with no fill. The main 99stud logo, shown in the admin. File: `public/brand/99stud-outline-logo.svg`; component `OutlineLogo`.
+_Avoid_: mark, white logo, icon
+
+**Wordmark**:
+The name "99STUD" set in type. A blurred copy is the texture of the WebGL text tunnel (`TextTunnel`, not currently added to the scene): `public/assets/textures/99stud-wordmark.png`.
+_Avoid_: logo text, 99stud texture
+
 ### Email signature
 
 **Email signature**:
