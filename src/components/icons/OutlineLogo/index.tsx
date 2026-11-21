@@ -1,9 +1,9 @@
 import { FC } from 'react';
 
-// The outline logo (see GLOSSARY.md), shown by Payload in the breadcrumb home link. It is inline,
-// sized by its container and filled like Payload's own icon. Same paths as
-// public/brand/99stud-mark-white.svg.
-export const Icon: FC<{ fill?: string }> = ({ fill = 'var(--theme-elevation-1000)' }) => (
+// The outline logo (see GLOSSARY.md), shown by Payload as its `graphics.Icon` in the breadcrumb home
+// link. It is inline, sized by its container and filled like Payload's own icon. Same paths as
+// public/brand/99stud-outline-logo.svg.
+export const OutlineLogo: FC<{ fill?: string }> = ({ fill = 'var(--theme-elevation-1000)' }) => (
   <svg height="100%" viewBox="0 0 409 364" width="100%" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M82.4301 89.36L92.4501 100.54L78.7301 114.25L88.9401 127.32L77.8501 138.33L66.9001 125.52L55.0001 135.89L45.3101 124.83L57.6601 113.08L46.6801 99.39L57.0701 90.71L68.9601 103.92L82.4301 89.36Z"

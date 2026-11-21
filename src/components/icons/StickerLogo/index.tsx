@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-// The sticker logo (see GLOSSARY.md), same paths as public/brand/99stud-logo-dark.svg. The
+// The sticker logo (see GLOSSARY.md), same paths as public/brand/99stud-sticker-logo.svg. The
 // silhouette is drawn twice: first stroked in white as the die-cut halo that keeps it readable on
 // any background, then filled in black.
 const SILHOUETTE =

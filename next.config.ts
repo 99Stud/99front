@@ -2,6 +2,16 @@ import { withPayload } from '@payloadcms/next/withPayload';
 
 import type { NextConfig } from 'next';
 
+// Logo files renamed after the logos they hold (see GLOSSARY.md). Sent emails and pasted email
+// signatures still load the old URLs.
+const RENAMED_BRAND_FILES = {
+  '99stud-logo-dark.png': '99stud-sticker-logo.png',
+  '99stud-logo-dark.svg': '99stud-sticker-logo.svg',
+  '99stud-logo.png': '99stud-solid-logo.png',
+  '99stud-logo.svg': '99stud-solid-logo.svg',
+  '99stud-mark-white.svg': '99stud-outline-logo.svg',
+};
+
 const nextConfig: NextConfig = {
   reactCompiler: true,
   // Each build worker loads the Payload config, which starts a wrangler proxy on the shared
@@ -24,6 +34,11 @@ const nextConfig: NextConfig = {
       destination: '/admin/signature',
       permanent: true,
     },
+    ...Object.entries(RENAMED_BRAND_FILES).map(([from, to]) => ({
+      source: `/brand/${from}`,
+      destination: `/brand/${to}`,
+      permanent: true,
+    })),
   ],
   headers: async () => [
     {

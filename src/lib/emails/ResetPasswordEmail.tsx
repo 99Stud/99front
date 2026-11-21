@@ -110,7 +110,7 @@ export const ResetPasswordEmail = ({ email, resetURL }: Props) => (
             <Img
               alt="99stud"
               height={36}
-              src={`${SITE_URL}/brand/99stud-logo-dark.png`}
+              src={`${SITE_URL}/brand/99stud-sticker-logo.png`}
               width={40}
             />
           </Link>

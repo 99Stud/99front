@@ -568,11 +568,11 @@ onTick({ time }) {
 
 ### Texture Tunnel
 
-- Prepares a plane with a repeating 99stud texture, additive blending, and animated UVs, but its `add` call is commented out in `Scene.init`, so it is currently inactive.
+- Prepares a plane with a repeating wordmark texture, additive blending, and animated UVs, but its `add` call is commented out in `Scene.init`, so it is currently inactive.
 
 ```45:120:src/webgl/entities/TextTunnel.js
 init() {
-  const texture = getAsset('tex-99stud');
+  const texture = getAsset('tex-99stud-wordmark');
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
   texture.flipY = true;

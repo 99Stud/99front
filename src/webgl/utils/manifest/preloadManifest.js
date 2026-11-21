@@ -4,7 +4,7 @@ const textures = {
   gradient: '/assets/textures/gradient.webp',
   normal: '/assets/textures/normal.webp',
   bluenoise: '/assets/textures/bluenoise.png',
-  '99stud': '/assets/textures/99stud.png',
+  '99stud-wordmark': '/assets/textures/99stud-wordmark.png',
   'detection-square': '/assets/textures/detection-square.png',
 };
 
@@ -62,7 +62,7 @@ export const assetConfigs = {
       type: 'texture',
       flipY: true,
     },
-    'tex-99stud': {
+    'tex-99stud-wordmark': {
       type: 'texture',
       tiled: true,
       flipY: false,
