@@ -6,8 +6,10 @@ import { FC } from 'react';
 const SILHOUETTE =
   'M358.57 144.83L343.26 143.66L320.18 197.26L391.78 244.4L294.63 257.77L319.59 315.77L240.98 285.47L197.64 349.54L166.32 314.76L92.45 363.86L117.11 284.9L9.63 304.67L70.07 246.96L0 229.3L57.8 200.17L39.09 183.1L37.8 152.48L14.28 125.38L28.63 110.52L15.46 93.62L60.01 58.03L70.79 71.4L83.08 55.87L157.03 20.46L221.31 0.67L276.52 0L296.57 17.92L354.8 17.71L407.63 51.35L408.71 104.39L358.57 144.83Z';
 
-export const StickerLogo: FC = () => (
+// 216×194 by default; size it with `className`, keeping `h-auto` so the ratio holds
+export const StickerLogo: FC<{ className?: string }> = ({ className }) => (
   <svg
+    className={className}
     fill="none"
     height="194"
     viewBox="-14 -14 437 392"
